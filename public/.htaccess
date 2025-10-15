@@ -1,12 +1,13 @@
+# Active le moteur de réécriture
 RewriteEngine On
-RewriteBase /
+RewriteBase /es_moulon/public/
 
-# Laisser passer les fichiers/dossiers réels
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
+# Laisse passer les fichiers statiques (CSS, JS, images, uploads)
+RewriteCond %{REQUEST_URI} ^/assets/ [OR]
+RewriteCond %{REQUEST_URI} ^/uploads/
+RewriteRule .* - [L]
 
-# Tout le reste vers index.php
-RewriteRule ^ index.php [QSA,L]
-
-
+# Redirige tout le reste vers index.php (routeur principal)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]

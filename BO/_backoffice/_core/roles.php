@@ -4,7 +4,10 @@ $roles = [
     'ROLE_ADMIN' => [
         'name' => 'Administrateur',
         'color' => '#dc2626',
-        'permissions' => ['dashboard', 'articles', 'equipes', 'joueurs', 'medias', 'actualites', 'utilisateurs', 'moderations', 'parametres']
+        'permissions' => [
+            'dashboard', 'articles', 'equipes', 'joueurs', 'medias',
+            'actualites', 'utilisateurs', 'moderations', 'parametres'
+        ]
     ],
     'ROLE_EDITOR' => [
         'name' => 'Rédacteur',
@@ -20,6 +23,11 @@ $roles = [
         'name' => 'Modérateur',
         'color' => '#9333ea',
         'permissions' => ['dashboard', 'moderations', 'articles']
+    ],
+    'ROLE_LICENSED' => [
+        'name' => 'Licencié',
+        'color' => '#6b7280',
+        'permissions' => [] // aucun accès au back-office
     ]
 ];
 

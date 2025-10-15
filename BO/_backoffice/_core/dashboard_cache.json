@@ -1,0 +1,188 @@
+{
+    "realStats": {
+        "licencies": 20,
+        "joueurs": 4,
+        "actualites": 11,
+        "matchs": 19,
+        "medias": 34,
+        "equipes": 30,
+        "partenaires": 9,
+        "visites_aujourdhui": 1,
+        "visites_mois": 13,
+        "visites_total": 34,
+        "visiteurs_uniques": 21
+    },
+    "stats": [
+        {
+            "label": "Visites aujourd'hui",
+            "value": 1,
+            "color": "#3b82f6",
+            "icon": "\ud83d\udc65"
+        },
+        {
+            "label": "Visites ce mois",
+            "value": 13,
+            "color": "#9b59b6",
+            "icon": "\ud83d\udcca"
+        },
+        {
+            "label": "Visiteurs uniques",
+            "value": 21,
+            "color": "#1abc9c",
+            "icon": "\ud83c\udf10"
+        },
+        {
+            "label": "Messages en attente",
+            "value": 0,
+            "color": "#ef4444",
+            "icon": "\ud83d\udce7",
+            "notification": false
+        },
+        {
+            "label": "Convocations",
+            "value": 2,
+            "color": "#f59e0b",
+            "icon": "\ud83d\udcdd"
+        },
+        {
+            "label": "Licenci\u00e9s",
+            "value": 20,
+            "color": "#10b981",
+            "icon": "\ud83d\udc65"
+        },
+        {
+            "label": "Joueurs",
+            "value": 4,
+            "color": "#22c55e",
+            "icon": "\u26bd"
+        },
+        {
+            "label": "Actualit\u00e9s",
+            "value": 11,
+            "color": "#6366f1",
+            "icon": "\ud83d\udcc4"
+        },
+        {
+            "label": "Matchs \u00e0 venir",
+            "value": 19,
+            "color": "#f97316",
+            "icon": "\ud83c\udfc6"
+        },
+        {
+            "label": "\u00c9quipes",
+            "value": 30,
+            "color": "#14b8a6",
+            "icon": "\ud83d\udc55"
+        },
+        {
+            "label": "M\u00e9dias",
+            "value": 34,
+            "color": "#8b5cf6",
+            "icon": "\ud83d\udcf8"
+        },
+        {
+            "label": "Partenaires",
+            "value": 9,
+            "color": "#ec4899",
+            "icon": "\ud83e\udd1d"
+        }
+    ],
+    "activities": [],
+    "statsAvancees": {
+        "visites_par_mois": [
+            {
+                "mois": "2025-05",
+                "mois_nom": "Mai 2025",
+                "total": 4,
+                "pourcentage": 30.76923076923077,
+                "evolution": null
+            },
+            {
+                "mois": "2025-06",
+                "mois_nom": "Juin 2025",
+                "total": 3,
+                "pourcentage": 23.076923076923077,
+                "evolution": -25
+            },
+            {
+                "mois": "2025-07",
+                "mois_nom": "Juillet 2025",
+                "total": 4,
+                "pourcentage": 30.76923076923077,
+                "evolution": 33
+            },
+            {
+                "mois": "2025-08",
+                "mois_nom": "Ao\u00fbt 2025",
+                "total": 4,
+                "pourcentage": 30.76923076923077,
+                "evolution": 0
+            },
+            {
+                "mois": "2025-09",
+                "mois_nom": "Septembre 2025",
+                "total": 6,
+                "pourcentage": 46.15384615384615,
+                "evolution": 50
+            },
+            {
+                "mois": "2025-10",
+                "mois_nom": "Octobre 2025",
+                "total": 13,
+                "pourcentage": 100,
+                "evolution": 117
+            }
+        ],
+        "top_pages": [
+            {
+                "page": "\/index.php",
+                "total": 9
+            },
+            {
+                "page": "\/actualites.php",
+                "total": 5
+            },
+            {
+                "page": "\/equipe.php",
+                "total": 4
+            },
+            {
+                "page": "\/contact.php",
+                "total": 4
+            },
+            {
+                "page": "\/matchs.php",
+                "total": 4
+            }
+        ],
+        "moyenne_jour": "0.6",
+        "total_semaine": 1,
+        "meilleur_jour": {
+            "nom": "Jeudi",
+            "total": 3
+        },
+        "navigation_moyenne": "1.6",
+        "navigateurs": [
+            {
+                "browser": "Chrome",
+                "total": 16,
+                "pourcentage": "47.1"
+            },
+            {
+                "browser": "Safari",
+                "total": 7,
+                "pourcentage": "20.6"
+            },
+            {
+                "browser": "Firefox",
+                "total": 6,
+                "pourcentage": "17.6"
+            },
+            {
+                "browser": "Edge",
+                "total": 5,
+                "pourcentage": "14.7"
+            }
+        ]
+    }
+}

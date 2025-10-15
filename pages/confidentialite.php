@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/../includes/tracker.php'; // Enregistre la visite
+?>
 <?php $title = "Politique de confidentialité — ES Moulon"; ?>
 
 <div class="legal">

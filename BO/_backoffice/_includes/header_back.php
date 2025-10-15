@@ -12,7 +12,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <title>Backoffice - ES Moulon</title>
 
-    <link rel="stylesheet" href="<?= asset('_back.css/dashboard.css') ?>">
+    <link rel="stylesheet" href="<?= asset('_back.css/backoffice.css') ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 </head>
 

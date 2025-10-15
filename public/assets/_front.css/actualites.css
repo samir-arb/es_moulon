@@ -1,0 +1,393 @@
+/* ==============================
+   STYLE ACTUALITÉS — ES MOULON
+   Palette : Vert forêt #1B5E20 | Vert clair #43A047 | Doré #D4AF37 | Blanc cassé #FDFBF7
+   ============================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #FDFBF7;
+    color: #1f2937;
+    line-height: 1.6;
+}
+
+/* ==============================
+   LAYOUT GÉNÉRAL
+   ============================== */
+.container {
+    max-width: 1200px; /* aligné sur ton site principal */
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ==============================
+   HEADER PAGE ACTUALITÉS
+   ============================== */
+.page-header {
+    background: radial-gradient(circle at top left, #1c995a 0%, #0e7038 60%, #0b5a2d 100%);
+    color: #fff;
+    padding: 40px 0 40px;
+    text-align: center;
+    margin: 0 auto 40px;   /* centre horizontalement */
+    max-width: 1200px;     /* même largeur que le reste du site */
+    border-radius: 0 0 30px 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.page-header .container {
+    padding: 0 20px;
+}
+
+.page-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.page-header p {
+    font-size: 1.2rem;
+    opacity: 0.95;
+}
+
+/* ==============================
+   MISE EN PAGE PRINCIPALE
+   ============================== */
+.main-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+/* ==============================
+   SIDEBAR (Filtres + Archives)
+   ============================== */
+.sidebar {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+.sidebar-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+}
+
+.sidebar-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #1B5E20;
+    border-bottom: 3px solid #D4AF37;
+    padding-bottom: 10px;
+    font-weight: 700;
+}
+
+.filter-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.filter-group select:focus {
+    border-color: #43A047;
+    outline: none;
+}
+
+/* Boutons de filtres */
+.btn-filter {
+    width: 100%;
+    padding: 12px;
+    background: #43A047;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+}
+
+.btn-filter:hover {
+    background: #1B5E20;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+}
+
+.btn-reset {
+    width: 100%;
+    padding: 10px;
+    background: #9CA3AF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-reset:hover {
+    background: #6B7280;
+}
+
+/* ==============================
+   ARCHIVES
+   ============================== */
+.archive-list {
+    list-style: none;
+}
+
+.archive-item {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.archive-item:hover {
+    background: #F3F4F6;
+    padding-left: 20px;
+}
+
+.archive-item a {
+    text-decoration: none;
+    color: #1B5E20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.archive-count {
+    background: #D4AF37;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* ==============================
+   GRILLE D’ACTUALITÉS
+   ============================== */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 30px;
+}
+
+.news-item {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.news-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.news-thumbnail {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+}
+
+.news-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.news-item:hover .news-thumbnail img {
+    transform: scale(1.1);
+}
+
+.news-date-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: 700;
+    color: #1B5E20;
+    font-size: 0.9rem;
+}
+
+/* ==============================
+   CONTENU DE L’ARTICLE
+   ============================== */
+.news-content {
+    padding: 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.news-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #1B5E20;
+    line-height: 1.3;
+}
+
+.news-title a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease;
+}
+
+.news-title a:hover {
+    color: #43A047;
+}
+
+.news-excerpt {
+    color: #4B5563;
+    margin-bottom: 15px;
+    line-height: 1.6;
+    flex: 1;
+}
+
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.9rem;
+    color: #9ca3af;
+}
+
+.news-author {
+    font-weight: 600;
+    color: #1B5E20;
+}
+
+/* ==============================
+   BOUTONS / LIENS
+   ============================== */
+.btn-read-more {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #1B5E20;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.btn-read-more:hover {
+    background: #43A047;
+    transform: translateX(5px);
+}
+
+/* ==============================
+   PAGINATION
+   ============================== */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 60px 0;
+    flex-wrap: wrap;
+}
+
+.pagination a,
+.pagination span {
+    padding: 12px 20px;
+    background: white;
+    color: #1B5E20;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.pagination a:hover {
+    background: #43A047;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+}
+
+.pagination .active {
+    background: #1B5E20;
+    color: white;
+}
+
+.pagination .disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* ==============================
+   MESSAGE — AUCUNE ACTUALITÉ
+   ============================== */
+.no-results {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.no-results h3 {
+    font-size: 2rem;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.no-results p {
+    color: #9ca3af;
+    font-size: 1.1rem;
+}
+
+/* ==============================
+   RESPONSIVE
+   ============================== */
+@media (max-width: 1024px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+}

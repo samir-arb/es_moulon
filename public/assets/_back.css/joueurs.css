@@ -182,3 +182,112 @@ tr:hover {
     border-radius: 8px;
     margin-bottom: 20px;
 }
+
+/* Joueurs par équipe */
+.no-players {
+    text-align: center;
+    color: #6b7280;
+    padding: 40px;
+}
+
+.teams-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.team-block {
+    background: #f9fafb;
+    border-left: 4px solid #1e40af;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.team-header h3 {
+    color: #1f2937;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.player-count {
+    background: #1e40af;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+}
+
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.player-card {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.player-content {
+    display: flex;
+    align-items: start;
+    gap: 12px;
+}
+
+.jersey-number {
+    background: #1e40af;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.player-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.player-name {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.player-details {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.player-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.btn-edit {
+    padding: 6px 12px;
+    background: #f59e0b;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.btn-delete {
+    padding: 6px 12px;
+    background: #ef4444;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+

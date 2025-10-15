@@ -1,5 +1,8 @@
 <?php
+
+file_put_contents('C:/laragon/www/es_moulon/test.txt', date('H:i:s') . ' - Passage dans joueurs.php' . PHP_EOL, FILE_APPEND);
 require_once __DIR__ . '/../../../includes/config.php';
+
 
 // --- Sécurité ---
 if (!isset($_SESSION['user_id']) || $_SESSION['logged_in'] !== true) {
@@ -30,25 +33,25 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete']) && $user_role === 'ROL
         $_SESSION['flash']['danger'] = "Erreur lors de la suppression.";
     }
     $stmt->close();
-    header('Location: joueurs.php' . ($filter_team ? '?team='.$filter_team : ''));
+    header('Location: /es_moulon/BO/admin.php?section=joueurs' . ($filter_team ? '&team=' . $filter_team : ''));
     exit;
 }
 
 // --- AJOUT / MODIFICATION ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_player'])) {
     $id_link = isset($_POST['id_user_club_function']) ? (int)$_POST['id_user_club_function'] : 0;
-    $first_name   = trim($_POST['first_name']);
-    $last_name    = trim($_POST['last_name']);
-    $birth_date   = $_POST['birth_date'];
-    $id_team      = (int)$_POST['id_team'];
-    $position     = trim($_POST['position']);
+    $first_name = trim($_POST['first_name']);
+    $last_name = trim($_POST['last_name']);
+    $birth_date = $_POST['birth_date'];
+    $id_team = (int)$_POST['id_team'];
+    $position = trim($_POST['position']);
     $jersey_number = !empty($_POST['jersey_number']) ? (int)$_POST['jersey_number'] : null;
 
     if (empty($first_name) || empty($last_name) || empty($birth_date) || $id_team === 0) {
         $_SESSION['flash']['danger'] = "Les champs obligatoires doivent être remplis.";
     } else {
         if ($id_link > 0) {
-            // --- MODIFICATION ---
+            // MODIFICATION
             $sql = "UPDATE users u
                     INNER JOIN users_club_functions ucf ON u.id_user = ucf.id_user
                     SET u.first_name = ?, u.name = ?, u.birth_date = ?, 
@@ -57,35 +60,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_player'])) {
             $stmt = $conn->prepare($sql);
             $stmt->bind_param('sssissi', $first_name, $last_name, $birth_date, $id_team, $position, $jersey_number, $id_link);
             $message = "Joueur modifié avec succès.";
+
+            if ($stmt->execute()) {
+                $_SESSION['flash']['success'] = $message;
+            } else {
+                $_SESSION['flash']['danger'] = "Erreur : " . $stmt->error;
+            }
+            $stmt->close();
         } else {
-            // --- AJOUT ---
-            // 1. Création du user
-            $sqlUser = "INSERT INTO users (first_name, name, birth_date) VALUES (?, ?, ?)";
+            // AJOUT
+            $sqlUser = "INSERT INTO users (first_name, name, birth_date, id_role, has_backoffice_access) VALUES (?, ?, ?, ?, ?)";
             $stmtUser = $conn->prepare($sqlUser);
-            $stmtUser->bind_param('sss', $first_name, $last_name, $birth_date);
-            $stmtUser->execute();
-            $id_user = $stmtUser->insert_id;
-            $stmtUser->close();
+            $id_role = 5; // ROLE_LICENSED
+            $stmtUser->bind_param('sssii', $first_name, $last_name, $birth_date, $id_role, $has_backoffice_access);
 
-            // 2. Lien joueur
-            $id_club_function = 1; // ⚠️ ID exact de "Joueur" dans ta table club_functions
-            $id_season = 2;        // ⚠️ ID de la saison active 2025/2026
-            $sqlLink = "INSERT INTO users_club_functions 
-                        (id_user, id_team, id_club_function, id_season, position, jersey_number, start_date) 
-                        VALUES (?, ?, ?, ?, ?, ?, NOW())";
-            $stmt = $conn->prepare($sqlLink);
-            $stmt->bind_param('iiiisi', $id_user, $id_team, $id_club_function, $id_season, $position, $jersey_number);
-            $message = "Joueur ajouté avec succès.";
-        }
+            if ($stmtUser->execute()) {
+                $id_user = $stmtUser->insert_id;
+                $stmtUser->close();
 
-        if ($stmt->execute()) {
-            $_SESSION['flash']['success'] = $message;
-        } else {
-            $_SESSION['flash']['danger'] = "Erreur lors de l'enregistrement.";
+                // Récupérer la saison active
+                $id_club_function = 1;
+                $season_query = $conn->query("SELECT id_season FROM seasons WHERE is_active = 1 LIMIT 1");
+                $season_row = $season_query->fetch_assoc();
+                $id_season = $season_row['id_season'];
+
+                $sqlLink = "INSERT INTO users_club_functions (id_user, id_team, id_club_function, id_season, position, jersey_number, start_date) VALUES (?, ?, ?, ?, ?, ?, NOW())";
+                $stmt = $conn->prepare($sqlLink);
+                $stmt->bind_param('iiiisi', $id_user, $id_team, $id_club_function, $id_season, $position, $jersey_number);
+
+                if ($stmt->execute()) {
+                    $_SESSION['flash']['success'] = "Joueur ajouté avec succès.";
+                } else {
+                    $_SESSION['flash']['danger'] = "Erreur lien : " . $stmt->error;
+                }
+                $stmt->close();
+            } else {
+                $_SESSION['flash']['danger'] = "Erreur user : " . $stmtUser->error;
+            }
         }
-        $stmt->close();
     }
-    header('Location: joueurs.php' . ($filter_team ? '?team='.$filter_team : ''));
+
+    header('Location: /es_moulon/BO/admin.php?section=joueurs' . ($filter_team ? '&team=' . $filter_team : ''));
     exit;
 }
 
@@ -154,12 +169,14 @@ $positions = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
 
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Joueurs et Licenciés - ES Moulon</title>
     <link rel="stylesheet" href="<?= asset('_back.css/joueurs.css') ?>">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -183,13 +200,11 @@ $positions = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
         }
         ?>
 
-
         <!-- FORMULAIRE -->
         <div class="card" id="formSection" style="<?= $edit_player ? '' : 'display:none;' ?>">
             <h2><?= $edit_player ? '✏️ Modifier le joueur' : '➕ Nouveau joueur' ?></h2>
 
-            <form method="POST" action="joueurs.php
-            <?= $filter_team ? '?team=' . $filter_team : '' ?>">   
+            <form method="POST" action="/es_moulon/BO/admin.php?section=joueurs">
                 <?php if ($edit_player): ?>
                     <input type="hidden" name="id_user_club_function" value="<?= $edit_player['id_user_club_function'] ?>">
                 <?php endif; ?>
@@ -223,74 +238,115 @@ $positions = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
                     </div>
 
                     <?php if (!$edit_player || $edit_player['position'] !== null): ?>
-                    <div class="form-group">
-                        <label for="position">Poste</label>
-                        <select id="position" name="position">
-                            <option value="">-- Sélectionner --</option>
-                            <?php foreach ($positions as $pos): ?>
-                                <option value="<?= $pos ?>" <?= ($edit_player && $edit_player['position'] === $pos) ? 'selected' : '' ?>><?= $pos ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label for="position">Poste</label>
+                            <select id="position" name="position">
+                                <option value="">-- Sélectionner --</option>
+                                <?php foreach ($positions as $pos): ?>
+                                    <option value="<?= $pos ?>" <?= ($edit_player && $edit_player['position'] === $pos) ? 'selected' : '' ?>><?= $pos ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="jersey_number">Numéro de maillot</label>
-                        <input type="number" id="jersey_number" name="jersey_number" min="1" max="99" value="<?= $edit_player ? $edit_player['jersey_number'] : '' ?>">
-                    </div>
+                        <div class="form-group">
+                            <label for="jersey_number">Numéro de maillot</label>
+                            <input type="number" id="jersey_number" name="jersey_number" min="1" max="99" value="<?= $edit_player ? $edit_player['jersey_number'] : '' ?>">
+                        </div>
                 </div>
-                 <?php endif; ?>
-                <div class="form-actions">
-                    <button type="submit" name="save_player" class="btn btn-success">💾 Enregistrer</button>
-                    <a href="joueurs.php<?= $filter_team ? '?team=' . $filter_team : '' ?>" class="btn btn-secondary">Annuler</a>
-                </div>
+            <?php endif; ?>
+            <div class="form-actions">
+                <button type="submit" name="save_player" class="btn btn-success">💾 Enregistrer</button>
+                <a href="/es_moulon/BO/admin.php?section=joueurs" class="btn btn-secondary">Annuler</a>
+            </div>
             </form>
         </div>
-
-        <!-- LISTE -->
+        
+        <!-- LISTE PAR ÉQUIPES -->
         <div class="card">
-            <h2>Liste des joueurs (<?= count($players) ?>)</h2>
-            <?php if (empty($players)): ?>
-                <p>Aucun joueur pour le moment.</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: #1f2937;">Joueurs par équipe</h2>
+                
+            </div>
+
+            <?php
+            // Grouper les joueurs par équipe
+            $players_by_team = [];
+            foreach ($players as $player) {
+                $team_key = $player['team_name'] . ' (' . $player['team_level'] . ')';
+                if (!isset($players_by_team[$team_key])) {
+                    $players_by_team[$team_key] = [
+                        'id_team' => $player['id_team'] ?? 0,
+                        'players' => []
+                    ];
+                }
+                $players_by_team[$team_key]['players'][] = $player;
+            }
+            ?>
+
+            <?php if (empty($players_by_team)): ?>
+                <p style="text-align: center; color: #6b7280; padding: 40px;">Aucun joueur pour le moment.</p>
             <?php else: ?>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>N°</th>
-                                <th>Nom complet</th>
-                                <th>Date de naissance</th>
-                                <th>Âge</th>
-                                <th>Équipe</th>
-                                <th>Poste</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($players as $player): 
-                                $birth = new DateTime($player['birth_date']);
-                                $today = new DateTime();
-                                $age = $today->diff($birth)->y;
-                            ?>
-                                <tr>
-                                    <td><?= $player['jersey_number'] ? $player['jersey_number'] : '-' ?></td>
-                                    <td><?= htmlspecialchars($player['first_name'] . ' ' . $player['name']) ?></td>
-                                    <td><?= date('d/m/Y', strtotime($player['birth_date'])) ?></td>
-                                    <td><?= $age ?> ans</td>
-                                    <td><?= htmlspecialchars($player['team_level'] . ' - ' . $player['team_name']) ?></td>
-                                    <td><?= $player['position'] ? htmlspecialchars($player['position']) : '-' ?></td>
-                                    <td>
-                                        <a href="joueurs.php?edit=<?= $player['id_user_club_function'] ?>" class="btn btn-warning">✏️</a>
-                                        <?php if ($user_role === 'ROLE_ADMIN'): ?>
-                                            <a href="joueurs.php?delete=<?= $player['id_user_club_function'] ?>" class="btn btn-danger" onclick="return confirm('Supprimer ce joueur ?')">🗑️</a>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div style="display: grid; gap: 20px;">
+                    <?php foreach ($players_by_team as $team_name => $team_data): ?>
+                        <div style="background: #f9fafb; border-left: 4px solid #1e40af; border-radius: 12px; padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="color: #1f2937; font-size: 1.2rem;">
+                                    <?= htmlspecialchars($team_name) ?>
+                                    <span style="background: #1e40af; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; margin-left: 12px;">
+                                        <?= count($team_data['players']) ?> joueur<?= count($team_data['players']) > 1 ? 's' : '' ?>
+                                    </span>
+                                </h3>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+                                <?php foreach ($team_data['players'] as $player): 
+                                    $birth = new DateTime($player['birth_date']);
+                                    $today = new DateTime();
+                                    $age = $today->diff($birth)->y;
+                                ?>
+                                    <div style="background: white; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                        <div style="display: flex; align-items: start; gap: 12px;">
+                                            <?php if ($player['jersey_number']): ?>
+                                                <div style="background: #1e40af; color: white; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0;">
+                                                    <?= $player['jersey_number'] ?>
+                                                </div>
+                                            <?php endif; ?>
+                                            
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">
+                                                    <?= htmlspecialchars($player['first_name'] . ' ' . $player['name']) ?>
+                                                </div>
+                                                <div style="font-size: 0.85rem; color: #6b7280;">
+                                                    <?= $age ?> ans
+                                                    <?php if ($player['position']): ?>
+                                                        • <?= htmlspecialchars($player['position']) ?>
+                                                    <?php endif; ?>
+                                                </div>
+                                                
+                                                <div style="display: flex; gap: 6px; margin-top: 12px;">
+                                                    <a href="/es_moulon/BO/admin.php?section=joueurs&edit=<?= $player['id_user_club_function'] ?>" 
+                                                    style="padding: 6px 12px; background: #f59e0b; color: white; border-radius: 6px; text-decoration: none; font-size: 0.85rem;">
+                                                        ✏️
+                                                    </a>
+                                                    <?php if ($user_role === 'ROLE_ADMIN'): ?>
+                                                        <a href="/es_moulon/BO/admin.php?section=joueurs&delete=<?= $player['id_user_club_function'] ?>" 
+                                                        style="padding: 6px 12px; background: #ef4444; color: white; border-radius: 6px; text-decoration: none; font-size: 0.85rem;"
+                                                        onclick="return confirm('Confirmer la suppression de <?= htmlspecialchars($player['first_name'] . ' ' . $player['name']) ?> ?')">
+                                                            🗑️
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 </body>
+
 </html>

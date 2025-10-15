@@ -6,6 +6,39 @@ ini_set('display_errors', 1);
 <?php
 require_once __DIR__ . '/../includes/config.php';
 
+
+// **********************Récupérer le dernier résultat**********************************
+$stmt = $pdo->query("
+    SELECT m.*, 
+           home.name as home_team, 
+           away.name as away_team
+    FROM matches m
+    LEFT JOIN teams home ON m.id_home_team = home.id_team
+    LEFT JOIN teams away ON m.id_away_team = away.id_team
+    WHERE m.match_date < NOW() 
+    AND m.home_score IS NOT NULL
+    ORDER BY m.match_date DESC
+    LIMIT 1
+");
+$dernier_resultat = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Récupérer le prochain match
+$stmt = $pdo->query("
+    SELECT m.*, 
+           home.name as home_team, 
+           away.name as away_team
+    FROM matches m
+    LEFT JOIN teams home ON m.id_home_team = home.id_team
+    LEFT JOIN teams away ON m.id_away_team = away.id_team
+    WHERE m.match_date >= NOW()
+    ORDER BY m.match_date ASC
+    LIMIT 1
+");
+$prochain_match = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+//******************************************************************************************************************** */
+
 // Chemin de la requête (ex: /es_moulon/public/accueil)
 $uriPath  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 
@@ -25,11 +58,11 @@ if ($path === '' || $path === 'index.php') {
   $path = 'accueil'; 
 }
 
-
 // table de routage
 $map = [
   'accueil'                        => PAGES.'/accueil.php',
   'actualites'                     => PAGES.'/actualites.php',
+  'actualite'                      => PAGES.'/actualite_detail.php',  
   'partenaires'                    => PAGES.'/partenaires.php',
   'Le_club/histoire_et_valeurs'    => PAGES.'/Le_club/histoire_et_valeurs.php',
   'Le_club/infos_pratiques'        => PAGES.'/Le_club/infos_pratiques.php',
@@ -51,6 +84,7 @@ $map = [
   'confidentialite'                => PAGES.'/confidentialite.php',
   'droits'                         => PAGES.'/droits.php',
 ];
+
 
 $file = $map[$path] ?? null;
 

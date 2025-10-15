@@ -97,5 +97,5 @@ $_SESSION['login_time'] = time();
 $_SESSION['flash']['success'] = "Bienvenue " . htmlspecialchars($user['first_name']) . " !";
 
 // Redirection vers le backoffice principal
-header('Location: ../../backoffice.php');
+header('Location: ../../admin.php');
 exit;

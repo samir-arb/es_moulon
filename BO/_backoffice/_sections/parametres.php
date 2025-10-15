@@ -1,6 +1,5 @@
 <?php
-session_start();
-require '../../includes/config.php';
+require_once __DIR__ . '/../../../includes/config.php';
 
 // Protection de la page - ADMIN UNIQUEMENT
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
@@ -20,6 +19,7 @@ if ($_SESSION['role'] !== 'ROLE_ADMIN') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="stylesheet" href="<?= asset('_back.css/parametres.css') ?>">
     <title>Paramètres - ES Moulon</title>
     <style>
         * {

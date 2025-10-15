@@ -6,19 +6,23 @@ $menu_items = [
     // Bloc d’accueil (table home_blocks)
     ['id' => 'home', 'icon' => '🏡', 'label' => 'Accueil (Bloc)', 'roles' => ['ROLE_ADMIN']],
 
+    // Info-pratique (table cub_info)
+    ['id' => 'club_info', 'icon' => 'ℹ️', 'label' => 'Info-pratique', 'roles' => ['ROLE_ADMIN','ROLE_EDITOR']],
+
     // Actualités (table news)
     ['id' => 'news', 'icon' => '📰', 'label' => 'Actualités', 'roles' => ['ROLE_ADMIN','ROLE_EDITOR']],
 
     // Matchs & Résultats (table matches)
-    ['id' => 'resultats', 'icon' => '🏆', 'label' => 'Matchs & Résultats', 'roles' => ['ROLE_ADMIN','ROLE_SPORT_MANAGER']],
+    ['id' => 'calendrier', 'icon' => '🏆', 'label' => 'Calendrier & Résultats', 'roles' => ['ROLE_ADMIN','ROLE_EDITOR','ROLE_SPORT_MANAGER']],
 
     // Équipes (tables teams + teams_seasons + categories + seasons)
     ['id' => 'equipes', 'icon' => '👥', 'label' => 'Équipes', 'roles' => ['ROLE_ADMIN','ROLE_SPORT_MANAGER']],
 
     // Joueurs / Licenciés (table users + users_club_functions + club_functions)
-    ['id' => 'joueurs', 'icon' => '⚽', 'label' => 'Joueurs & Licenciés', 'roles' => ['ROLE_ADMIN','ROLE_SPORT_MANAGER']],
+    ['id' => 'joueurs', 'icon' => '⚽', 'label' => 'Joueurs ', 'roles' => ['ROLE_ADMIN','ROLE_SPORT_MANAGER', 'ROLE_COATCH']],
 
-    ['id' => 'staff',       'icon' => '👔', 'label' => 'Staff',        'link' => 'staff.php',       'roles' => ['ROLE_ADMIN','ROLE_EDITOR']],
+    ['id' => 'staff',       'icon' => '👔', 'label' => 'Staff & Administration',        'link' => 'staff.php',       'roles' => ['ROLE_ADMIN','ROLE_EDITOR']],
+
 
     // Convocations des joueurs 
     //['id' => 'convocations', 'icon' => '📅', 'label' => 'Convocations', 'roles' => ['ROLE_ADMIN','ROLE_SPORT_MANAGER','ROLE_COACH']],
@@ -28,7 +32,10 @@ $menu_items = [
     ['id' => 'medias', 'icon' => '🖼️', 'label' => 'Médiathèque', 'roles' => ['ROLE_ADMIN','ROLE_EDITOR']],
 
     // Partenaires (table partners)
-    ['id' => 'partenaires', 'icon' => '🤝', 'label' => 'Partenaires', 'roles' => ['ROLE_ADMIN']],
+    ['id' => 'partenaires', 'icon' => '🤝', 'label' => 'Partenaires', 'roles' => ['ROLE_ADMIN', 'ROLE_EDITOR']],
+
+    // Organigramme (table club_structure)
+    ['id' => 'club_structure', 'icon' => '📆', 'label' => 'Organigramme', 'roles' => ['ROLE_ADMIN','ROLE_EDITOR']],
 
     // Contacts (table contacts)
     ['id' => 'contacts', 'icon' => '✉️', 'label' => 'Contacts', 'roles' => ['ROLE_ADMIN']],

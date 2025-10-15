@@ -1,338 +1,283 @@
 <?php
+require_once __DIR__ . '/../../../includes/config.php';
 
+// URL de l'admin courante
+$adminUrl = $_SERVER['PHP_SELF'] ?? '/es_moulon/BO/admin.php';
 
-// Protection de la page
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+// ======================
+// 🔐 Sécurité d'accès
+// ======================
+if (!isset($_SESSION['user_id']) || !$_SESSION['logged_in']) {
     $_SESSION['flash']['warning'] = "Vous devez être connecté.";
-    header('Location: login.php');
+    header("Location: {$adminUrl}?section=login");
     exit;
 }
 
-// Vérification des permissions
 $allowed_roles = ['ROLE_ADMIN', 'ROLE_EDITOR', 'ROLE_MODERATOR'];
 if (!in_array($_SESSION['role'], $allowed_roles)) {
-    $_SESSION['flash']['danger'] = "Vous n'avez pas accès à cette section.";
-    header('Location: dashboard.php');
+    $_SESSION['flash']['danger'] = "Accès refusé.";
+    header("Location: {$adminUrl}?section=dashboard");
     exit;
 }
 
-$user_role = $_SESSION['role'];
 $user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['role'];
 
-// --- SUPPRESSION ---
+// ======================
+// 🗑️ Suppression d'image
+// ======================
+if (isset($_GET['remove_media']) && isset($_GET['edit'])) {
+    $article_id = (int)$_GET['edit'];
+    $stmt = $conn->prepare("UPDATE news SET id_media = NULL WHERE id_new = ?");
+    $stmt->bind_param('i', $article_id);
+    $stmt->execute();
+    $stmt->close();
+    $_SESSION['flash']['success'] = "Image retirée avec succès.";
+    header("Location: {$adminUrl}?section=news&edit={$article_id}");
+    exit;
+}
+
+// ======================
+// 🗑️ Suppression
+// ======================
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $id = (int)$_GET['delete'];
-    
-    // Vérifier si l'utilisateur a le droit de supprimer
+
     if ($user_role === 'ROLE_ADMIN' || $user_role === 'ROLE_MODERATOR') {
-        $sql = "DELETE FROM news WHERE id_news = ?";
-        $stmt = $conn->prepare($sql);
+        $stmt = $conn->prepare("DELETE FROM news WHERE id_new = ?");
         $stmt->bind_param('i', $id);
-        
-        if ($stmt->execute()) {
-            $_SESSION['flash']['success'] = "Article supprimé avec succès.";
-        } else {
-            $_SESSION['flash']['danger'] = "Erreur lors de la suppression.";
-        }
+        $stmt->execute();
         $stmt->close();
+        $_SESSION['flash']['success'] = "Article supprimé avec succès.";
     } else {
         $_SESSION['flash']['danger'] = "Vous n'avez pas la permission de supprimer.";
     }
-    
-    header('Location: ../dashboard.php?section=news');
+
+    header("Location: {$adminUrl}?section=news");
     exit;
 }
 
-// --- AJOUT / MODIFICATION ---
+// ======================
+// 💾 Ajout / Modification
+// ======================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_article'])) {
-    $id = isset($_POST['id_news']) ? (int)$_POST['id_news'] : 0;
+    $id = isset($_POST['id_new']) ? (int)$_POST['id_new'] : 0;
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
     $status = isset($_POST['status']) ? (int)$_POST['status'] : 1;
-    
-    // Validation
-    if (empty($title) || empty($content)) {
-        $_SESSION['flash']['danger'] = "Le titre et le contenu sont obligatoires.";
+    $id_media = !empty($_POST['id_media']) ? (int)$_POST['id_media'] : null;
+    $published_at = !empty($_POST['published_at']) ? $_POST['published_at'] : date('Y-m-d H:i:s');
+
+    if (empty($title)) {
+        $_SESSION['flash']['danger'] = "Le titre est obligatoire.";
     } else {
         if ($id > 0) {
-            // MODIFICATION
-            $sql = "UPDATE news SET title = ?, content = ?, status = ?, updated_at = NOW() WHERE id_news = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param('ssii', $title, $content, $status, $id);
-            $message = "Article modifié avec succès.";
+            // 🔁 MODIFICATION
+            $stmt = $conn->prepare("
+                UPDATE news 
+                SET title = ?, content = ?, status = ?, id_media = ?, published_at = ?, updated_at = NOW()
+                WHERE id_new = ?
+            ");
+            $stmt->bind_param('ssiisi', $title, $content, $status, $id_media, $published_at, $id);
+            $msg = "Article mis à jour avec succès.";
         } else {
-            // AJOUT
-            $sql = "INSERT INTO news (title, content, status, id_user, published_at) VALUES (?, ?, ?, ?, NOW())";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param('ssii', $title, $content, $status, $user_id);
-            $message = "Article ajouté avec succès.";
+            // 🆕 AJOUT
+            $stmt = $conn->prepare("
+                INSERT INTO news (title, content, status, id_user, id_media, published_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->bind_param('ssiiss', $title, $content, $status, $user_id, $id_media, $published_at);
+            $msg = "Nouvel article publié avec succès.";
         }
-        
-        if ($stmt->execute()) {
-            $_SESSION['flash']['success'] = $message;
-        } else {
-            $_SESSION['flash']['danger'] = "Erreur lors de l'enregistrement.";
-        }
+
+        $stmt->execute();
         $stmt->close();
+        $_SESSION['flash']['success'] = $msg;
     }
-    
-    header('Location: news.php');
+
+    header("Location: {$adminUrl}?section=news");
     exit;
 }
 
-// --- RÉCUPÉRATION POUR MODIFICATION ---
+// ======================
+// ✏️ Récupération pour modification
+// ======================
 $edit_article = null;
 if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
-    $id = (int)$_GET['edit'];
-    $sql = "SELECT * FROM news WHERE id_news = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $id);
+    $stmt = $conn->prepare("SELECT * FROM news WHERE id_new = ?");
+    $stmt->bind_param('i', $_GET['edit']);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $edit_article = $result->fetch_assoc();
+    $edit_article = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 }
 
-// --- LISTE DES ARTICLES ---
-$sql = "
+// ======================
+// 📋 Liste des articles
+// ======================
+$result = $conn->query("
     SELECT n.*, u.first_name, u.name 
     FROM news n
     LEFT JOIN users u ON n.id_user = u.id_user
     ORDER BY n.published_at DESC
-";
-$result = $conn->query($sql);
-$articles = [];
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $articles[] = $row;
-    }
-}
+");
+$articles = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+
+// ======================
+// 📊 Statistiques
+// ======================
+$total = count($articles);
+$publies = count(array_filter($articles, fn($a) => $a['status'] == 1));
+$brouillons = $total - $publies;
+$dernier = $articles[0]['title'] ?? 'Aucun article';
+
+// ======================
+// 📂 Médias disponibles
+// ======================
+$result = $conn->query("SELECT id_media, file_name, file_path, description FROM medias ORDER BY uploaded_at DESC");
+$available_medias = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Articles - ES Moulon</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f3f4f6;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .header {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 {
-            color: #1f2937;
-            font-size: 1.5rem;
-        }
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.2s;
-        }
-        .btn-primary {
-            background: #1e40af;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #1e3a8a;
-        }
-        .btn-success {
-            background: #10b981;
-            color: white;
-            font-size: 0.9rem;
-            padding: 8px 16px;
-        }
-        .btn-warning {
-            background: #f59e0b;
-            color: white;
-            font-size: 0.9rem;
-            padding: 8px 16px;
-        }
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-            font-size: 0.9rem;
-            padding: 8px 16px;
-        }
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border-left: 4px solid #10b981;
-        }
-        .alert-danger {
-            background: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-        .card {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #374151;
-            font-weight: 500;
-        }
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        .form-group textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #1e40af;
-        }
-        .table-container {
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th {
-            background: #f9fafb;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            color: #1f2937;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            color: #374151;
-        }
-        tr:hover {
-            background: #f9fafb;
-        }
-        .badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .badge-active {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        .badge-inactive {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-    </style>
+    <title>Gestion des Actualités - ES Moulon</title>
+    <link rel="stylesheet" href="<?= asset('_back.css/news.css') ?>">
 </head>
 <body>
     <div class="container">
+
+        <!-- HEADER -->
         <div class="header">
             <div>
-                <h1>📄 Gestion des Articles</h1>
-                <p style="color: #6b7280; margin-top: 4px;">
-                    <a href="dashboard.php" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
+                <h1>📰 Gestion des Actualités</h1>
+                <p style="color:#6b7280;margin-top:4px;">
+                    <a href="<?= htmlspecialchars($adminUrl) ?>?section=dashboard" style="color:#1e40af;text-decoration:none;">← Retour au tableau de bord</a>
                 </p>
             </div>
-            <?php if (!$edit_article): ?>
-                <button class="btn btn-primary" onclick="document.getElementById('formSection').style.display='block'; window.scrollTo(0,0);">
-                    ➕ Nouvel article
-                </button>
-            <?php endif; ?>
+            <button class="btn btn-primary" onclick="toggleForm()">➕ Nouvel article</button>
         </div>
 
-        <?php
-        // Messages flash
-        if (isset($_SESSION['flash'])) {
-            foreach ($_SESSION['flash'] as $type => $message) {
-                echo '<div class="alert alert-' . htmlspecialchars($type) . '">' . htmlspecialchars($message) . '</div>';
-            }
-            unset($_SESSION['flash']);
-        }
-        ?>
+        <!-- FLASH MESSAGES -->
+        <?php if (isset($_SESSION['flash'])): ?>
+            <?php foreach ($_SESSION['flash'] as $type => $msg): ?>
+                <div class="alert alert-<?= $type ?>"><?= htmlspecialchars($msg) ?></div>
+            <?php endforeach;
+            unset($_SESSION['flash']); ?>
+        <?php endif; ?>
 
-        <!-- FORMULAIRE -->
+        <!-- 📊 STATISTIQUES -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value"><?= $total ?></div>
+                <div class="stat-label">Articles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#10b981;"><?= $publies ?></div>
+                <div class="stat-label">Publiés</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#f59e0b;"><?= $brouillons ?></div>
+                <div class="stat-label">Brouillons</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#1f2937;font-size:1rem;"><?= htmlspecialchars($dernier) ?></div>
+                <div class="stat-label">Dernier article</div>
+            </div>
+        </div>
+
+        <!-- ✏️ FORMULAIRE -->
         <div class="card" id="formSection" style="<?= $edit_article ? '' : 'display:none;' ?>">
-            <h2 style="margin-bottom: 20px; color: #1f2937;">
-                <?= $edit_article ? '✏️ Modifier l\'article' : '➕ Nouvel article' ?>
-            </h2>
-            
-            <form method="POST" action="news.php">
+            <h2><?= $edit_article ? '✏️ Modifier un article' : '➕ Nouvel article' ?></h2>
+
+            <?php if ($edit_article && !empty($edit_article['updated_at'])): ?>
+                <p style="color:#6b7280;font-size:0.9rem;margin-bottom:10px;">
+                    🕒 Dernière modification le <?= date('d/m/Y à H:i', strtotime($edit_article['updated_at'])) ?>
+                </p>
+            <?php endif; ?>
+
+            <form method="POST" action="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>?section=news">
                 <?php if ($edit_article): ?>
-                    <input type="hidden" name="id_news" value="<?= $edit_article['id_news'] ?>">
+                    <input type="hidden" name="id_new" value="<?= (int)$edit_article['id_new'] ?>">
                 <?php endif; ?>
-                
+
                 <div class="form-group">
-                    <label for="title">Titre de l'article *</label>
-                    <input 
-                        type="text" 
-                        id="title" 
-                        name="title" 
-                        value="<?= $edit_article ? htmlspecialchars($edit_article['title']) : '' ?>" 
-                        required>
+                    <label for="title">Titre *</label>
+                    <input type="text" id="title" name="title" value="<?= htmlspecialchars($edit_article['title'] ?? '') ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="content">Contenu *</label>
-                    <textarea 
-                        id="content" 
-                        name="content" 
-                        required><?= $edit_article ? htmlspecialchars($edit_article['content']) : '' ?></textarea>
+                    <label for="content">Contenu</label>
+                    <textarea id="content" name="content" rows="8"><?= htmlspecialchars($edit_article['content'] ?? '') ?></textarea>
+                </div>
+
+                <!-- SÉLECTEUR D'IMAGES -->
+                <div class="form-group">
+                    <label>Image associée</label>
+                    
+                    <?php if ($edit_article && !empty($edit_article['id_media'])): ?>
+                        <!-- APERÇU DE L'IMAGE ACTUELLE -->
+                        <?php
+                        $current_media_query = $conn->query("SELECT file_path, file_name FROM medias WHERE id_media = " . (int)$edit_article['id_media']);
+                        $current_media = $current_media_query ? $current_media_query->fetch_assoc() : null;
+                        ?>
+                        
+                        <?php if ($current_media): ?>
+                            <div style="background:#f0fdf4;border:2px solid #10b981;border-radius:12px;padding:15px;margin-bottom:15px;">
+                                <div style="display:flex;align-items:center;gap:15px;">
+                                    <img src="<?= asset($current_media['file_path']) ?>" 
+                                         alt="Image actuelle" 
+                                         style="width:80px;height:80px;object-fit:cover;border-radius:8px;">
+                                    <div style="flex:1;">
+                                        <p style="font-weight:600;color:#065f46;margin-bottom:5px;">✅ Image actuelle</p>
+                                        <p style="font-size:0.9rem;color:#047857;"><?= htmlspecialchars($current_media['file_name']) ?></p>
+                                    </div>
+                                    <a href="<?= htmlspecialchars($adminUrl) ?>?section=news&edit=<?= $edit_article['id_new'] ?>&remove_media=1" 
+                                       class="btn btn-danger"
+                                       onclick="return confirm('Voulez-vous vraiment retirer cette image ?')"
+                                       style="padding:8px 16px;font-size:0.9rem;">
+                                        ❌ Retirer l'image
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    
+                    <div class="media-selector-container">
+                        <div class="media-selector-header">
+                            <span style="font-weight:600;color:#1f2937;">
+                                📷 Ma sélection (<span id="selectionCount">0</span>)
+                            </span>
+                            <button type="button" 
+                                    onclick="openMediaManager()" 
+                                    class="open-media-manager">
+                                ➕ Ajouter des images
+                            </button>
+                            <button type="button" 
+                                    onclick="clearSelection()" 
+                                    class="btn btn-secondary"
+                                    style="padding:8px 16px;">
+                                🗑️ Vider la sélection
+                            </button>
+                        </div>
+                        
+                        <div class="media-selector-grid" id="mediaSelectorGrid">
+                            <div class="no-results" style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;">
+                                Aucune image sélectionnée.<br>
+                                Cliquez sur "➕ Ajouter des images" pour en choisir depuis votre médiathèque.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <small style="color: #6b7280; margin-top: 8px; display: block;">
+                        💡 Astuce : Cliquez sur "➕ Ajouter des images" pour ouvrir votre médiathèque. Sélectionnez les images que vous voulez, puis fermez la fenêtre.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="published_at">Date de publication</label>
+                    <input type="datetime-local" id="published_at" name="published_at"
+                        value="<?= $edit_article ? date('Y-m-d\TH:i', strtotime($edit_article['published_at'])) : '' ?>">
                 </div>
 
                 <div class="form-group">
@@ -344,20 +289,17 @@ if ($result && $result->num_rows > 0) {
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" name="save_article" class="btn btn-success">
-                        💾 Enregistrer
-                    </button>
-                    <a href="../dashboard.php?section=news" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" name="save_article" class="btn btn-success">💾 Enregistrer</button>
+                    <a href="<?= htmlspecialchars($adminUrl) ?>?section=news" class="btn btn-secondary">Annuler</a>
                 </div>
             </form>
         </div>
 
-        <!-- LISTE -->
+        <!-- 📜 LISTE DES ARTICLES -->
         <div class="card">
-            <h2 style="margin-bottom: 20px; color: #1f2937;">Liste des articles (<?= count($articles) ?>)</h2>
-            
+            <h2>Liste des articles (<?= $total ?>)</h2>
             <?php if (empty($articles)): ?>
-                <p style="text-align: center; color: #6b7280; padding: 40px;">Aucun article pour le moment.</p>
+                <p style="text-align:center;color:#6b7280;padding:30px;">Aucun article pour le moment.</p>
             <?php else: ?>
                 <div class="table-container">
                     <table>
@@ -366,36 +308,37 @@ if ($result && $result->num_rows > 0) {
                                 <th>ID</th>
                                 <th>Titre</th>
                                 <th>Auteur</th>
-                                <th>Date</th>
+                                <th>Date publication</th>
+                                <th>Dernière modif</th>
                                 <th>Statut</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($articles as $article): ?>
+                            <?php foreach ($articles as $a): ?>
                                 <tr>
-                                    <td><?= $article['id_news'] ?></td>
-                                    <td style="font-weight: 500;"><?= htmlspecialchars($article['title']) ?></td>
-                                    <td><?= htmlspecialchars($article['first_name'] . ' ' . $article['name']) ?></td>
-                                    <td><?= date('d/m/Y', strtotime($article['published_at'])) ?></td>
+                                    <td><?= $a['id_new'] ?></td>
                                     <td>
-                                        <?php if ($article['status'] == 1): ?>
+                                        <strong><?= htmlspecialchars($a['title']) ?></strong>
+                                        <?php if (!empty($a['id_media'])): ?>
+                                            <span style="display:inline-block;margin-left:8px;background:#10b981;color:white;padding:2px 8px;border-radius:12px;font-size:0.75rem;">📷 Photo</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($a['first_name'] . ' ' . $a['name']) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($a['published_at'])) ?></td>
+                                    <td><?= !empty($a['updated_at']) ? date('d/m/Y H:i', strtotime($a['updated_at'])) : '-' ?></td>
+                                    <td>
+                                        <?php if ($a['status']): ?>
                                             <span class="badge badge-active">Publié</span>
                                         <?php else: ?>
                                             <span class="badge badge-inactive">Brouillon</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td>
-                                        <div class="actions">
-                                            <a href="../dashboard.php?edit=<?= $article['id_news'] ?>" class="btn btn-warning">✏️ Modifier</a>
-                                            <?php if ($user_role === 'ROLE_ADMIN' || $user_role === 'ROLE_MODERATOR'): ?>
-                                                <a href="../dashboard.php?delete=<?= $article['id_news'] ?>" 
-                                                   class="btn btn-danger" 
-                                                   onclick="return confirm('Confirmer la suppression ?')">
-                                                    🗑️ Supprimer
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
+                                    <td class="actions">
+                                        <a href="<?= htmlspecialchars($adminUrl) ?>?section=news&edit=<?= $a['id_new'] ?>" class="btn btn-warning">✏️ Modifier</a>
+                                        <?php if ($user_role === 'ROLE_ADMIN' || $user_role === 'ROLE_MODERATOR'): ?>
+                                            <a href="<?= htmlspecialchars($adminUrl) ?>?section=news&delete=<?= $a['id_new'] ?>" class="btn btn-danger" onclick="return confirm('Confirmer la suppression ?')">🗑️ Supprimer</a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -405,5 +348,232 @@ if ($result && $result->num_rows > 0) {
             <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        // Toggle formulaire
+        function toggleForm() {
+            const form = document.getElementById('formSection');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Marquer l'élément pré-sélectionné au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkedRadio = document.querySelector('.media-selector-item input[type="radio"]:checked');
+            if (checkedRadio) {
+                checkedRadio.closest('.media-selector-item').classList.add('selected');
+            }
+        });
+
+        // Sélection d'un média
+        function selectMedia(element) {
+            document.querySelectorAll('.media-selector-item').forEach(el => {
+                el.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        // Recherche/filtre des médias
+        function filterMedias() {
+            const searchTerm = document.getElementById('mediaSearchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.media-selector-item');
+            let visibleCount = 0;
+            
+            items.forEach(item => {
+                const filename = item.getAttribute('data-filename');
+                if (filename.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('visibleCount').textContent = visibleCount;
+            
+            const grid = document.getElementById('mediaSelectorGrid');
+            let noResultsMsg = grid.querySelector('.no-results');
+            
+            if (visibleCount === 0 && !noResultsMsg) {
+                noResultsMsg = document.createElement('div');
+                noResultsMsg.className = 'no-results';
+                noResultsMsg.style.gridColumn = '1/-1';
+                noResultsMsg.innerHTML = '😕 Aucun média trouvé pour "' + searchTerm + '"';
+                grid.appendChild(noResultsMsg);
+            } else if (visibleCount > 0 && noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
+    </script>
+    
+    <style>
+        .media-selector-container {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .media-selector-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .media-search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .media-search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .media-count {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .open-media-manager {
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .open-media-manager:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+
+        .media-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .media-selector-item {
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 3px solid #e5e7eb;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .media-selector-item:hover {
+            border-color: #3b82f6;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .media-selector-item.selected {
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+        }
+
+        .media-selector-item img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .media-selector-label {
+            padding: 8px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            background: white;
+            color: #374151;
+            border-top: 1px solid #e5e7eb;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        .media-selector-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .selected-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .media-selector-item.selected .selected-badge {
+            display: block;
+            animation: popIn 0.3s ease;
+        }
+
+        .remove-from-selection {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .media-selector-item:hover .remove-from-selection {
+            opacity: 1;
+        }
+
+        .remove-from-selection:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+    </style>
 </body>
 </html>

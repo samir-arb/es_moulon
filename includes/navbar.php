@@ -1,4 +1,4 @@
-  <header class="header">
+<header class="header">
     <!-- Logo médaille (prend les fichiers depuis /public/assets/...) -->
     <div class="logo-badge">
       <img src="<?= asset('img/logo_moulon.jpg') ?>" alt="ES Moulon">
@@ -66,7 +66,7 @@
                   <img class="bullet" src="<?= asset('picto/icons8-foot-de-plage-30.png') ?>" alt=""> Effectif et staff
                 </a></li>
               <li><a href="<?= url('Regional1/calendrier') ?>">
-                  <img class="bullet" src="<?= asset('picto/icons8-foot-de-plage-30.png') ?>" alt=""> Calendrier
+                  <img class="bullet" src="<?= asset('picto/icons8-foot-de-plage-30.png') ?>" alt=""> Calendrier & Résultats
                 </a></li>
               <li><a href="<?= url('Regional1/classement') ?>">
                   <img class="bullet" src="<?= asset('picto/icons8-foot-de-plage-30.png') ?>" alt=""> Classement
@@ -114,5 +114,11 @@
           </li>
         </ul>
       </div>
-    </nav>
+       <!-- Bouton burger -->
+      <div class="burger" id="burger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+        </nav>
   </header>

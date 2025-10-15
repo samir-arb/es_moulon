@@ -1,191 +1,448 @@
 <?php
+require_once __DIR__ . '/../../../includes/config.php';
 
-// Protection
-if (!isset($_SESSION['user_id']) || $_SESSION['logged_in'] !== true) {
-    $_SESSION['flash']['warning'] = "Vous devez être connecté.";
-    header('Location: login.php');
+$adminUrl = $_SERVER['PHP_SELF'] ?? '/es_moulon/BO/admin.php';
+
+// Sécurité
+if (!isset($_SESSION['user_id']) || !$_SESSION['logged_in']) {
+    header("Location: {$adminUrl}?section=login");
     exit;
 }
 
-$user_role = $_SESSION['role'] ?? '';
 $allowed_roles = ['ROLE_ADMIN', 'ROLE_EDITOR'];
-if (!in_array($user_role, $allowed_roles)) {
-    $_SESSION['flash']['danger'] = "Accès refusé.";
-    header('Location: dashboard.php');
+if (!in_array($_SESSION['role'], $allowed_roles)) {
+    header("Location: {$adminUrl}?section=dashboard");
     exit;
 }
 
-// Initialiser edit
-$edit = null;
+$user_role = $_SESSION['role'];
 
-// --- SUPPRESSION ---
+// ========================================
+// GESTION IMAGE FOOTER
+// ========================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_footer_image'])) {
+    $footer_media_id = isset($_POST['footer_media_id']) && !empty($_POST['footer_media_id']) ? (int)$_POST['footer_media_id'] : null;
+    
+    try {
+        // Retirer l'usage 'partner_footer' de toutes les images
+        $conn->query("UPDATE medias SET usage_type = NULL WHERE usage_type = 'partner_footer'");
+        
+        // Appliquer le nouvel usage si une image est sélectionnée
+        if ($footer_media_id) {
+            $stmt = $conn->prepare("UPDATE medias SET usage_type = 'partner_footer' WHERE id_media = ?");
+            $stmt->bind_param('i', $footer_media_id);
+            $stmt->execute();
+            $stmt->close();
+            $_SESSION['flash']['success'] = "Image footer mise à jour avec succès !";
+        } else {
+            $_SESSION['flash']['success'] = "Image footer retirée.";
+        }
+    } catch (Exception $e) {
+        $_SESSION['flash']['danger'] = "Erreur : " . $e->getMessage();
+    }
+    
+    header("Location: {$adminUrl}?section=partenaires");
+    exit;
+}
+
+// SUPPRESSION
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $id = (int)$_GET['delete'];
-
-    $stmt = $conn->prepare("DELETE FROM users WHERE id_user=?");
-    $stmt->bind_param('i', $id);
-    if ($stmt->execute()) {
-        $_SESSION['flash']['success'] = "Arbitre supprimé.";
-    } else {
-        $_SESSION['flash']['danger'] = "Erreur lors de la suppression.";
+    if ($user_role === 'ROLE_ADMIN') {
+        $stmt = $conn->prepare("DELETE FROM partners WHERE id_partner = ?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $stmt->close();
+        $_SESSION['flash']['success'] = "Partenaire supprimé.";
     }
-    $stmt->close();
-
-    header("Location: arbitres.php");
+    header("Location: {$adminUrl}?section=partenaires");
     exit;
 }
 
-// --- RÉCUPÉRATION POUR MODIFICATION ---
+// AJOUT / MODIFICATION
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_partner'])) {
+    $id = isset($_POST['id_partner']) && is_numeric($_POST['id_partner']) ? (int)$_POST['id_partner'] : 0;
+    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+    $website_url = isset($_POST['website_url']) ? trim($_POST['website_url']) : '';
+    $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+    $is_active = isset($_POST['is_active']) ? 1 : 0;
+    $display_order = isset($_POST['display_order']) ? (int)$_POST['display_order'] : 1;
+    $id_media = isset($_POST['id_media']) && !empty($_POST['id_media']) ? (int)$_POST['id_media'] : null;
+    
+    if (empty($name)) {
+        $_SESSION['flash']['danger'] = "Le nom du partenaire est obligatoire.";
+    } else {
+        if ($id > 0) {
+            // Modification
+            $stmt = $conn->prepare("UPDATE partners SET company_name=?, redirect_url=?, description=?, is_active=?, display_order=?, id_media=? WHERE id_partner=?");
+            $stmt->bind_param('sssiiii', $name, $website_url, $description, $is_active, $display_order, $id_media, $id);
+            $msg = "Partenaire mis à jour avec succès.";
+        } else {
+            // Ajout
+            $stmt = $conn->prepare("INSERT INTO partners (company_name, redirect_url, description, is_active, display_order, id_media) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('sssiii', $name, $website_url, $description, $is_active, $display_order, $id_media);
+            $msg = "Partenaire ajouté avec succès.";
+        }
+        
+        if ($stmt->execute()) {
+            $_SESSION['flash']['success'] = $msg;
+        } else {
+            $_SESSION['flash']['danger'] = "Erreur lors de l'enregistrement : " . $stmt->error;
+        }
+        $stmt->close();
+    }
+    
+    header("Location: {$adminUrl}?section=partenaires");
+    exit;
+}
+
+// Récupération pour édition
+$edit_partner = null;
 if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
-    $id = (int)$_GET['edit'];
-    $sql = "
-        SELECT u.id_user, u.first_name, u.name, m.file_path AS photo
-        FROM users u
-        INNER JOIN users_club_functions ucf ON u.id_user = ucf.id_user
-        INNER JOIN club_functions cf ON ucf.id_club_function = cf.id_club_function
-        LEFT JOIN medias m ON u.id_user = m.id_user
-        WHERE cf.function_name = 'Arbitre' AND u.id_user = ?
-        ORDER BY u.name
-    ";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('i', $id);
+    $stmt = $conn->prepare("SELECT * FROM partners WHERE id_partner = ?");
+    $stmt->bind_param('i', $_GET['edit']);
     $stmt->execute();
-    $res = $stmt->get_result();
-    $edit = $res->fetch_assoc();
+    $edit_partner = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 }
 
-// --- AJOUT / MODIFICATION ---
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_arbitre'])) {
-    $id = isset($_POST['id_user']) ? (int)$_POST['id_user'] : 0;
-    $prenom = trim($_POST['prenom']);
-    $nom    = trim($_POST['nom']);
-    $photo  = trim($_POST['photo']);
+// Liste des partenaires
+$result = $conn->query("
+    SELECT p.*, m.file_path, m.file_name
+    FROM partners p
+    LEFT JOIN medias m ON p.id_media = m.id_media
+    ORDER BY p.display_order ASC, p.company_name ASC
+");
+$partners = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
-    if ($id > 0) {
-        $stmt = $conn->prepare("UPDATE users SET first_name=?, name=?, photo=? WHERE id_user=?");
-        $stmt->bind_param('sssi', $prenom, $nom, $photo, $id);
-        $stmt->execute();
-        $stmt->close();
-        $_SESSION['flash']['success'] = "Arbitre modifié.";
-    } else {
-        $stmt = $conn->prepare("INSERT INTO users (first_name, name, photo, created_at) VALUES (?, ?, ?, NOW())");
-        $stmt->bind_param('sss', $prenom, $nom, $photo);
-        $stmt->execute();
-        $new_user_id = $stmt->insert_id;
-        $stmt->close();
+// ==============================
+// 📊 Statistiques
+// ==============================
+$total = count($partners);
 
-        // Associer fonction arbitre
-        $stmt = $conn->prepare("INSERT INTO users_club_functions (id_user, id_club_function) 
-            VALUES (?, (SELECT id_club_function FROM club_functions WHERE function_name='Arbitre'))");
-        $stmt->bind_param('i', $new_user_id);
-        $stmt->execute();
-        $stmt->close();
+// on vérifie que la clé existe avant de tester sa valeur
+$actifs = count(array_filter($partners, fn($p) =>
+    isset($p['is_active']) && $p['is_active'] == 1
+));
 
-        $_SESSION['flash']['success'] = "Nouvel arbitre ajouté.";
-    }
+$inactifs = $total - $actifs;
 
-    header("Location: arbitres.php");
-    exit;
-}
 
-// --- LISTE DES ARBITRES ---
-$sql = "
-    SELECT u.id_user, u.first_name, u.name, m.file_path AS photo
-    FROM users u
-    INNER JOIN users_club_functions ucf ON u.id_user = ucf.id_user
-    INNER JOIN club_functions cf ON ucf.id_club_function = cf.id_club_function
-    LEFT JOIN medias m ON u.id_user = m.id_user
-    WHERE cf.function_name = 'Arbitre'
-    ORDER BY u.name
+// Liste des médias
+$medias_result = $conn->query("SELECT id_media, file_name, file_path FROM medias ORDER BY uploaded_at DESC");
+$available_medias = $medias_result ? $medias_result->fetch_all(MYSQLI_ASSOC) : [];
 
-";
-$res = $conn->query($sql);
-$arbitres = $res->fetch_all(MYSQLI_ASSOC);
+// ========================================
+// IMAGE FOOTER ACTUELLE
+// ========================================
+$footer_image_result = $conn->query("
+    SELECT id_media, file_name, file_path 
+    FROM medias 
+    WHERE usage_type = 'partner_footer' 
+    LIMIT 1
+");
+$current_footer_image = $footer_image_result ? $footer_image_result->fetch_assoc() : null;
 ?>
+
+
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-    <link rel="stylesheet" href="<?= asset('_back.css/arbitres.css') ?>">
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <title>Gestion Partenaires</title>
-
+    <link rel="stylesheet" href="<?= asset('_back.css/news.css') ?>">
+    <style>
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group-compact {
+            margin-bottom: 15px;
+        }
+        .form-group-compact label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+        .form-group-compact input,
+        .form-group-compact select,
+        .form-group-compact textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .form-group-compact textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .form-group-compact small {
+            display: block;
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
 <body>
-    <h1>👨‍⚖️ Gestion des Partenaires</h1>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🤝 Gestion des Partenaires</h1>
+                <p style="color:#6b7280;margin-top:4px;">
+                    <a href="<?= $adminUrl ?>?section=dashboard" style="color:#1e40af;text-decoration:none;">← Retour</a>
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="toggleForm()">➕ Nouveau partenaire</button>
+        </div>
 
-    <?php if (isset($_SESSION['flash'])): ?>
-        <?php foreach ($_SESSION['flash'] as $t => $m): ?>
-            <div class="alert alert-<?= $t ?>"><?= htmlspecialchars($m) ?></div>
-        <?php endforeach;
-        unset($_SESSION['flash']); ?>
-    <?php endif; ?>
+        <?php if (isset($_SESSION['flash'])): ?>
+            <?php foreach ($_SESSION['flash'] as $type => $msg): ?>
+                <div class="alert alert-<?= $type ?>"><?= htmlspecialchars($msg) ?></div>
+            <?php endforeach; unset($_SESSION['flash']); ?>
+        <?php endif; ?>
 
-    <!-- FORMULAIRE -->
-    <div class="card">
-        <h2><?= $edit ? "✏️ Modifier un Partenaire" : "➕ Ajouter un Partenaire" ?></h2>
-        <form method="post" action="partenaires.php">
-            <?php if ($edit): ?>
-                <input type="hidden" name="id_user" value="<?= $edit['id_user'] ?>">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value"><?= $total ?></div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#10b981;"><?= $actifs ?></div>
+                <div class="stat-label">Actifs</div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             IMAGE FOOTER "REJOIGNEZ PARTENAIRES"
+        ========================================= -->
+        <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);    border-left: 5px solid #10b981; margin-bottom: 30px;">
+            <h2>🖼️ Image Footer "Rejoignez nos Partenaires"</h2>
+            <p style="color:#6b7280;margin-bottom:20px;">📍 Cette image s'affiche en bas de la <strong>page Partenaires</strong> côté visiteurs</p>
+
+            <?php if ($current_footer_image): ?>
+                <div style="text-align:center;padding:20px;background:#f9fafb;border-radius:10px;margin-bottom:20px;">
+                    <img src="<?= asset($current_footer_image['file_path']) ?>" 
+                         alt="Image footer actuelle"
+                         style="max-width:100%;max-height:200px;object-fit:contain;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                    <p style="margin-top:10px;color:#6b7280;font-size:0.9rem;">
+                        <strong>Image actuelle :</strong> <?= htmlspecialchars($current_footer_image['file_name']) ?>
+                    </p>
+                </div>
+            <?php else: ?>
+                <div style="text-align:center;padding:30px;background:#fef3c7;border-radius:8px;color:#92400e;margin-bottom:20px;">
+                    ⚠️ <strong>Aucune image footer définie</strong>
+                </div>
             <?php endif; ?>
 
-            <div class="form-group">
-                <label for="prenom">Prénom *</label>
-                <input type="text" id="prenom" name="prenom" value="<?= $edit ? htmlspecialchars($edit['first_name']) : '' ?>" required>
-            </div>
+            <form method="POST" action="">
+                <input type="hidden" name="save_footer_image" value="1">
 
-            <div class="form-group">
-                <label for="nom">Nom *</label>
-                <input type="text" id="nom" name="nom" value="<?= $edit ? htmlspecialchars($edit['name']) : '' ?>" required>
-            </div>
+                <div class="form-group-compact">
+                    <label for="footer_media_id">Sélectionner une image</label>
+                    <select id="footer_media_id" name="footer_media_id" onchange="previewFooterImage(this)">
+                        <option value="">-- Aucune image (retirer) --</option>
+                        <?php foreach ($available_medias as $m): ?>
+                            <option value="<?= $m['id_media'] ?>" 
+                                    data-img="<?= asset($m['file_path']) ?>"
+                                    <?= ($current_footer_image && $current_footer_image['id_media'] == $m['id_media']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($m['file_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small style="display:block;margin-top:8px;color:#6b7280;">
+                        💡 Image manquante ? 
+                        <a href="<?= $adminUrl ?>?section=medias" target="_blank" style="color:#3b82f6;text-decoration:none;">Ouvrir Médias →</a> 
+                        puis rafraîchissez cette page
+                    </small>
+                </div>
 
-            <div class="form-group">
-                <label for="photo">Photo (URL)</label>
-                <input type="text" id="photo" name="photo" value="<?= $edit ? htmlspecialchars($edit['photo']) : '' ?>">
-            </div>
+                <div id="footerImagePreview" style="margin-top:15px;"></div>
 
-            <div class="form-actions">
-                <button type="submit" name="save_arbitre" class="btn btn-success">💾 Enregistrer</button>
-                <?php if ($edit): ?>
-                    <a href="arbitres.php" class="btn btn-warning">Annuler</a>
+                <div class="form-actions" style="margin-top:20px;">
+                    <button type="submit" class="btn btn-success">💾 Enregistrer l'image footer</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card" id="formSection" style="<?= $edit_partner ? '' : 'display:none;' ?>">
+            <h2><?= $edit_partner ? '✏️ Modifier' : '➕ Nouveau' ?> partenaire</h2>
+
+            <form method="POST" action="">
+                <input type="hidden" name="save_partner" value="1">
+                <?php if ($edit_partner): ?>
+                    <input type="hidden" name="id_partner" value="<?= (int)$edit_partner['id_partner'] ?>">
                 <?php endif; ?>
-            </div>
-        </form>
+
+                <div class="form-row">
+                    <div class="form-group-compact">
+                        <label for="name">Nom du partenaire *</label>
+                        <input type="text" id="name" name="name" value="<?= htmlspecialchars($edit_partner['name'] ?? '') ?>" required>
+                    </div>
+
+                    <div class="form-group-compact">
+                        <label for="display_order">Ordre d'affichage *</label>
+                        <input type="number" id="display_order" name="display_order" value="<?= $edit_partner['display_order'] ?? ($total + 1) ?>" min="1" required>
+                        <small>Plus petit = apparaît en premier</small>
+                    </div>
+                </div>
+
+                <div class="form-group-compact">
+                    <label for="website_url">Site web</label>
+                    <input type="url" id="website_url" name="website_url" value="<?= htmlspecialchars($edit_partner['website_url'] ?? '') ?>" placeholder="https://exemple.com">
+                </div>
+
+                <div class="form-group-compact">
+                    <label for="description">Description (optionnel)</label>
+                    <textarea id="description" name="description" rows="2"><?= htmlspecialchars($edit_partner['description'] ?? '') ?></textarea>
+                </div>
+
+                <div class="form-group-compact">
+                    <label for="id_media">Logo</label>
+                    <select id="id_media" name="id_media" onchange="previewLogo(this)">
+                        <option value="">Sans logo</option>
+                        <?php foreach ($available_medias as $m): ?>
+                            <option value="<?= $m['id_media'] ?>" 
+                                    data-img="<?= asset($m['file_path']) ?>"
+                                    <?= (isset($edit_partner) && $edit_partner['id_media'] == $m['id_media']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($m['file_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div id="logoPreview" style="margin-top:8px;"></div>
+                    <small>
+                        💡 Logo manquant ? 
+                        <a href="<?= $adminUrl ?>?section=medias" target="_blank" style="color:#3b82f6;">Ouvrir Médias</a> 
+                        puis rafraîchissez cette page
+                    </small>
+                </div>
+
+                <div class="form-group-compact">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="checkbox" name="is_active" <?= (isset($edit_partner) && $edit_partner['is_active']) || !isset($edit_partner) ? 'checked' : '' ?>>
+                        <span>Actif (visible sur le site)</span>
+                    </label>
+                </div>
+
+                <div class="form-actions" style="margin-top:20px;">
+                    <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+                    <a href="<?= $adminUrl ?>?section=partenaires" class="btn btn-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Liste des partenaires (<?= $total ?>)</h2>
+            <?php if (empty($partners)): ?>
+                <p style="text-align:center;color:#6b7280;padding:30px;">Aucun partenaire.</p>
+            <?php else: ?>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:80px;">Ordre</th>
+                                <th style="width:100px;">Logo</th>
+                                <th>Nom</th>
+                                <th style="width:80px;">Site</th>
+                                <th style="width:100px;">Statut</th>
+                                <th style="width:150px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($partners as $p): ?>
+                                <tr>
+                                    <td style="text-align:center;"><strong><?= $p['display_order'] ?></strong></td>
+                                    <td style="text-align:center;">
+                                        <?php if ($p['file_path']): ?>
+                                            <img src="<?= asset($p['file_path']) ?>" alt="" style="height:40px;max-width:80px;object-fit:contain;">
+                                        <?php else: ?>
+                                            <span style="color:#9ca3af;">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><strong><?= htmlspecialchars($p['company_name']) ?></strong></td>
+                                    <td style="text-align:center;">
+                                        <?php if ($p['redirect_url']): ?>
+                                            <a href="<?= htmlspecialchars($p['redirect_url']) ?>" target="_blank" style="color:#3b82f6;">🔗</a>
+                                        <?php else: ?>
+                                            -
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($p['is_active']): ?>
+                                            <span class="badge badge-active">Actif</span>
+                                        <?php else: ?>
+                                            <span class="badge badge-inactive">Inactif</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="actions">
+                                        <a href="?section=partenaires&edit=<?= $p['id_partner'] ?>" class="btn btn-warning">✏️</a>
+                                        <?php if ($user_role === 'ROLE_ADMIN'): ?>
+                                            <a href="?section=partenaires&delete=<?= $p['id_partner'] ?>" class="btn btn-danger" onclick="return confirm('Supprimer ?')">🗑️</a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <!-- LISTE -->
-    <div class="card">
-        <h2>Liste des Arbitres (<?= count($arbitres) ?>)</h2>
-        <?php if (empty($arbitres)): ?>
-            <p>Aucun arbitre pour le moment.</p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Photo</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($arbitres as $a): ?>
-                        <tr>
-                            <td><?= $a['id_user'] ?></td>
-                            <td><?= htmlspecialchars($a['name']) ?></td>
-                            <td><?= htmlspecialchars($a['first_name']) ?></td>
-                            <td><?php if ($a['photo']): ?><img src="<?= htmlspecialchars($a['photo']) ?>" width="60"><?php endif; ?></td>
-                            <td>
-                                <a href="arbitres.php?edit=<?= $a['id_user'] ?>" class="btn btn-warning">✏️ Modifier</a>
-                                <a href="arbitres.php?delete=<?= $a['id_user'] ?>" class="btn btn-danger" onclick="return confirm('Supprimer cet arbitre ?')">🗑️ Supprimer</a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-    </div>
+    <script>
+        function toggleForm() {
+            const form = document.getElementById('formSection');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function previewLogo(select) {
+            const opt = select.options[select.selectedIndex];
+            const prev = document.getElementById('logoPreview');
+            if (opt.dataset.img) {
+                prev.innerHTML = '<img src="' + opt.dataset.img + '" style="max-height:80px;max-width:150px;object-fit:contain;border:1px solid #e5e7eb;padding:8px;border-radius:6px;background:white;">';
+            } else {
+                prev.innerHTML = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const select = document.getElementById('id_media');
+            if (select && select.value) {
+                previewLogo(select);
+            }
+        });
+
+        // ✅ Preview image footer
+        function previewFooterImage(select) {
+            const opt = select.options[select.selectedIndex];
+            const prev = document.getElementById('footerImagePreview');
+            if (opt.dataset.img) {
+                prev.innerHTML = '<div style="text-align:center;padding:20px;background:#f9fafb;border-radius:10px;"><img src="' + opt.dataset.img + '" style="max-height:200px;max-width:100%;object-fit:contain;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);"><p style="margin-top:10px;color:#6b7280;font-size:0.9rem;">Aperçu de l\'image sélectionnée</p></div>';
+            } else {
+                prev.innerHTML = '';
+            }
+        }
+
+        // Initialisation au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            // ... vos autres initialisations ...
+            
+            // Preview image footer
+            const footerSelect = document.getElementById('footer_media_id');
+            if (footerSelect && footerSelect.value) {
+                previewFooterImage(footerSelect);
+            }
+        });
+    </script>
 </body>
-
 </html>
