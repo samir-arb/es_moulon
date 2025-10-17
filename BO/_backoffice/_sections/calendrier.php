@@ -114,14 +114,27 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
     $stmt->close();
 }
 
-// LISTE DES MATCHS (du plus ancien au plus récent)
+// LISTE DES MATCHS (du plus ancien au plus récent) - AVEC LOGOS
 $matchs_query = $conn->query("
-    SELECT m.*, 
-           th.name as home_team, th.id_club_team as home_is_club, th.level as home_level,
-           ta.name as away_team, ta.id_club_team as away_is_club, ta.level as away_level
+    SELECT 
+        m.*, 
+
+        th.name as home_team, 
+        th.id_club_team as home_is_club, 
+        th.level as home_level,
+        mh.file_path as home_logo,
+        
+        ta.name as away_team, 
+        ta.id_club_team as away_is_club, 
+        ta.level as away_level,
+        ma.file_path as away_logo
+        
     FROM matches m
     LEFT JOIN teams th ON m.id_home_team = th.id_team
     LEFT JOIN teams ta ON m.id_away_team = ta.id_team
+    LEFT JOIN medias mh ON th.id_team_logo = mh.id_media
+    LEFT JOIN medias ma ON ta.id_team_logo = ma.id_media
+    
     WHERE th.id_club_team = 1 OR ta.id_club_team = 1
     ORDER BY m.match_date ASC
 ");
@@ -546,6 +559,47 @@ foreach ($matchs as $m) {
             color: #999;
         }
 
+        /* ========== LOGOS DANS LES CARDS DE MATCH ========== */
+        .team-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .team-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .team-logo.club {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #d1fae5, #ffffff);
+        }
+
+        .team-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-logo-emoji {
+            font-size: 24px;
+        }
+
+        .team-info-text {
+            flex: 1;
+            text-align: left;
+        }
+
         @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -738,7 +792,6 @@ foreach ($matchs as $m) {
         <!-- LISTE DES MATCHS -->
         <div class="card">
             <h2>📋 Liste des matchs (<?= count($matchs) ?>)</h2>
-
             <?php if (empty($matchs)): ?>
                 <div class="empty-state">
                     <p style="font-size:1.1em;margin-bottom:10px;">Aucun match enregistré</p>
@@ -751,6 +804,10 @@ foreach ($matchs as $m) {
                         $team_club = $is_home_club ? $m['home_team'] : $m['away_team'];
                         $team_adversaire = $is_home_club ? $m['away_team'] : $m['home_team'];
                         $club_level = $is_home_club ? $m['home_level'] : $m['away_level'];
+
+                        // Logos
+                        $club_logo = $is_home_club ? $m['home_logo'] : $m['away_logo'];
+                        $opponent_logo = $is_home_club ? $m['away_logo'] : $m['home_logo'];
 
                         // Score du point de vue de l'équipe du club
                         $score_club = $is_home_club ? $m['home_score'] : $m['away_score'];
@@ -767,41 +824,92 @@ foreach ($matchs as $m) {
                         $months_fr = ['', 'JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUN', 'JUI', 'AOÛ', 'SEP', 'OCT', 'NOV', 'DÉC'];
                     ?>
                         <div class="match-card">
+                            <!-- DATE DU MATCH -->
                             <div class="match-date">
                                 <div class="day"><?= $date_obj->format('d') ?></div>
                                 <div class="month"><?= $months_fr[(int)$date_obj->format('m')] ?> <?= $date_obj->format('Y') ?></div>
                                 <div class="time"><?= $date_obj->format('H:i') ?></div>
                             </div>
 
+                            <!-- INFORMATIONS DU MATCH -->
                             <div class="match-info">
                                 <div class="match-teams">
                                     <?php if ($is_home_club): ?>
                                         <!-- Domicile : Club en premier -->
-                                        <div class="team club">
-                                            🏠 <?= htmlspecialchars($team_club) ?>
-                                            <?php if ($club_level): ?>
-                                                <span class="team-level">(<?= htmlspecialchars($club_level) ?>)</span>
-                                            <?php endif; ?>
+                                        <div class="team team-logo-container">
+                                            <div class="team-logo club">
+                                                <?php if (!empty($club_logo)): ?>
+                                                    <img src="<?= asset($club_logo) ?>" alt="<?= htmlspecialchars($team_club) ?>">
+                                                <?php else: ?>
+                                                    <span class="team-logo-emoji">⚽</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="team-info-text">
+                                                <div style="font-weight:700;color:#009639;">
+                                                    🏠 <?= htmlspecialchars($team_club) ?>
+                                                </div>
+                                                <?php if ($club_level): ?>
+                                                    <span class="team-level" style="font-size:0.8em;color:#666;">(<?= htmlspecialchars($club_level) ?>)</span>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
+                                        
                                         <div class="vs">VS</div>
-                                        <div class="team">
-                                            <?= htmlspecialchars($team_adversaire) ?>
+                                        
+                                        <div class="team team-logo-container">
+                                            <div class="team-logo">
+                                                <?php if (!empty($opponent_logo)): ?>
+                                                    <img src="<?= asset($opponent_logo) ?>" alt="<?= htmlspecialchars($team_adversaire) ?>">
+                                                <?php else: ?>
+                                                    <span class="team-logo-emoji">🔴</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="team-info-text">
+                                                <div style="font-weight:600;">
+                                                    <?= htmlspecialchars($team_adversaire) ?>
+                                                </div>
+                                            </div>
                                         </div>
                                     <?php else: ?>
                                         <!-- Extérieur : Adversaire en premier -->
-                                        <div class="team">
-                                            <?= htmlspecialchars($team_adversaire) ?>
+                                        <div class="team team-logo-container">
+                                            <div class="team-logo">
+                                                <?php if (!empty($opponent_logo)): ?>
+                                                    <img src="<?= asset($opponent_logo) ?>" alt="<?= htmlspecialchars($team_adversaire) ?>">
+                                                <?php else: ?>
+                                                    <span class="team-logo-emoji">🔴</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="team-info-text">
+                                                <div style="font-weight:600;">
+                                                    <?= htmlspecialchars($team_adversaire) ?>
+                                                </div>
+                                            </div>
                                         </div>
+                                        
                                         <div class="vs">VS</div>
-                                        <div class="team club">
-                                            ✈️ <?= htmlspecialchars($team_club) ?>
-                                            <?php if ($club_level): ?>
-                                                <span class="team-level">(<?= htmlspecialchars($club_level) ?>)</span>
-                                            <?php endif; ?>
+                                        
+                                        <div class="team team-logo-container">
+                                            <div class="team-logo club">
+                                                <?php if (!empty($club_logo)): ?>
+                                                    <img src="<?= asset($club_logo) ?>" alt="<?= htmlspecialchars($team_club) ?>">
+                                                <?php else: ?>
+                                                    <span class="team-logo-emoji">⚽</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="team-info-text">
+                                                <div style="font-weight:700;color:#009639;">
+                                                    ✈️ <?= htmlspecialchars($team_club) ?>
+                                                </div>
+                                                <?php if ($club_level): ?>
+                                                    <span class="team-level" style="font-size:0.8em;color:#666;">(<?= htmlspecialchars($club_level) ?>)</span>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
                                 </div>
 
+                                <!-- DÉTAILS DU MATCH -->
                                 <div class="match-details">
                                     <?php if (!is_null($score_club)): ?>
                                         <div class="match-score <?= $score_class ?>">
@@ -822,6 +930,7 @@ foreach ($matchs as $m) {
                                 </div>
                             </div>
 
+                            <!-- ACTIONS -->
                             <div class="match-actions">
                                 <a href="/es_moulon/BO/admin.php?section=calendrier&edit=<?= $m['id_match'] ?>"
                                     class="btn btn-warning"

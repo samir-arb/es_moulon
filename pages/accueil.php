@@ -1,38 +1,63 @@
 <?php
-require_once __DIR__ . '/../includes/tracker.php'; // Enregistre la visite
+require_once __DIR__ . '/../includes/tracker.php';
 require_once __DIR__ . '/../includes/config.php';
 
 // ==============================
-// 1️⃣ DERNIER RÉSULTAT
+// 1️⃣ DERNIER RÉSULTAT (matchs où ES MOULON a joué)
 // ==============================
 try {
     $stmt = $pdo->query("
-        SELECT m.*, home.name AS home_team_name, away.name AS away_team_name
+        SELECT 
+            m.*, 
+            home.name AS home_team_name, 
+            home.id_club_team AS home_is_club,
+            away.name AS away_team_name,
+            away.id_club_team AS away_is_club,
+            mh.file_path AS home_logo,
+            ma.file_path AS away_logo
         FROM matches m
         LEFT JOIN teams home ON m.id_home_team = home.id_team
+        LEFT JOIN medias mh ON home.id_team_logo = mh.id_media
         LEFT JOIN teams away ON m.id_away_team = away.id_team
-        WHERE m.match_date < NOW() AND m.home_score IS NOT NULL
-        ORDER BY m.match_date DESC LIMIT 1
+        LEFT JOIN medias ma ON away.id_team_logo = ma.id_media
+        WHERE m.match_date < NOW() 
+          AND m.home_score IS NOT NULL
+          AND (home.id_club_team = 1 OR away.id_club_team = 1)
+        ORDER BY m.match_date DESC 
+        LIMIT 1
     ");
     $dernier_resultat = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
+    error_log('Erreur dernier résultat : ' . $e->getMessage());
     $dernier_resultat = null;
 }
 
 // ==============================
-// 2️⃣ PROCHAIN MATCH
+// 2️⃣ PROCHAIN MATCH (matchs où ES MOULON va jouer)
 // ==============================
 try {
     $stmt = $pdo->query("
-        SELECT m.*, home.name AS home_team_name, away.name AS away_team_name
+        SELECT 
+            m.*, 
+            home.name AS home_team_name, 
+            home.id_club_team AS home_is_club,
+            away.name AS away_team_name,
+            away.id_club_team AS away_is_club,
+            mh.file_path AS home_logo,
+            ma.file_path AS away_logo
         FROM matches m
         LEFT JOIN teams home ON m.id_home_team = home.id_team
+        LEFT JOIN medias mh ON home.id_team_logo = mh.id_media
         LEFT JOIN teams away ON m.id_away_team = away.id_team
+        LEFT JOIN medias ma ON away.id_team_logo = ma.id_media
         WHERE m.match_date >= NOW()
-        ORDER BY m.match_date ASC LIMIT 1
+          AND (home.id_club_team = 1 OR away.id_club_team = 1)
+        ORDER BY m.match_date ASC 
+        LIMIT 1
     ");
     $prochain_match = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
+    error_log('Erreur prochain match : ' . $e->getMessage());
     $prochain_match = null;
 }
 
@@ -74,8 +99,6 @@ try {
 $title = "Accueil — ES Moulon";
 ?>
 
-
-
 <!-- ========================= HERO ========================= -->
 
 
@@ -93,62 +116,223 @@ $title = "Accueil — ES Moulon";
 </section>
 
 
-
 <!-- ========================= CARTES RÉSULTATS/MATCHS ========================= -->
 
-
 <section class="cards-grid">
-    <!-- Dernier résultat -->
-    <div class="card card--gradient">
-        <header class="card__head">
-            <img src="<?= asset('picto/icons8-coup-de-pied-de-football-64.png') ?>" alt="Football" class="badge-league">
-            <h3>DERNIERS RÉSULTATS</h3>
-        </header>
 
+    <!-- ========== CARD 1 : DERNIERS RÉSULTATS ========== -->
+    <div class="match-card">
         <?php if ($dernier_resultat): ?>
-            <p class="card__sub"><?= strtoupper(htmlspecialchars($dernier_resultat['match_type'])); ?></p>
-            <p class="card__date"><?= date('d/m/Y', strtotime($dernier_resultat['match_date'])); ?></p>
-            <div class="card__teams">
-                <div class="team"><?= htmlspecialchars($dernier_resultat['home_team_name']); ?> <strong><?= $dernier_resultat['home_score']; ?></strong></div>
-                <div class="team"><?= htmlspecialchars($dernier_resultat['away_team_name']); ?> <strong><?= $dernier_resultat['away_score']; ?></strong></div>
+            <?php
+            $club_name = 'E.S.MOULON';
+            $is_home_club = strcasecmp(trim($dernier_resultat['home_team_name']), $club_name) === 0;
+            $is_away_club = strcasecmp(trim($dernier_resultat['away_team_name']), $club_name) === 0;
+
+            // Format de la date
+            $date_match = new DateTime($dernier_resultat['match_date']);
+            $formatter = new IntlDateFormatter(
+                'fr_FR',                    // Locale
+                IntlDateFormatter::NONE,    // Format de date complet (on le gère à la main)
+                IntlDateFormatter::NONE,    // Format d'heure (on gère aussi à part)
+                'Europe/Paris',             // Fuseau horaire
+                IntlDateFormatter::GREGORIAN,
+                'EEE dd MMM'                // Format : abrégé jour + jour + mois (ex: "sam. 12 oct.")
+            );
+
+            // Formater la date
+            $date_formattee = $formatter->format($date_match);
+            $heure = $date_match->format('H\hi');
+            ?>
+
+            <div class="card-header">
+                <div class="card-badge">
+                    <span>⚽</span>
+                    <?php echo strtoupper(htmlspecialchars($dernier_resultat['match_type'])); ?>
+                </div>
+                <h3 class="card-title">Derniers Résultats</h3>
+                <div class="card-date"><?php echo strtoupper($date_formattee); ?> - <?php echo $heure; ?></div>
+            </div>
+
+            <div class="card-body">
+                <div class="match-display">
+                    <!-- Équipe Domicile -->
+                    <div class="team">
+                        <div class="team-logo <?php echo $is_home_club ? 'home' : ''; ?>">
+                            <?php if (!empty($dernier_resultat['home_logo'])): ?>
+                                <img src="<?php echo asset($dernier_resultat['home_logo']); ?>" alt="<?php echo htmlspecialchars($dernier_resultat['home_team_name']); ?>">
+                            <?php else: ?>
+                                <span class="team-logo-emoji"><?php echo $is_home_club ? '⚽' : '🔴'; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="team-name <?php echo $is_home_club ? 'home' : ''; ?>">
+                            <?php echo htmlspecialchars($dernier_resultat['home_team_name']); ?>
+                        </div>
+                    </div>
+
+                    <!-- Score -->
+                    <div class="match-separator">
+                        <div class="score-display">
+                            <div class="score-number <?php echo ($dernier_resultat['home_score'] > $dernier_resultat['away_score']) ? 'winner' : ''; ?>">
+                                <?php echo $dernier_resultat['home_score']; ?>
+                            </div>
+                            <div class="score-number <?php echo ($dernier_resultat['away_score'] > $dernier_resultat['home_score']) ? 'winner' : ''; ?>">
+                                <?php echo $dernier_resultat['away_score']; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Équipe Extérieur -->
+                    <div class="team">
+                        <div class="team-logo <?php echo $is_away_club ? 'home' : ''; ?>">
+                            <?php if (!empty($dernier_resultat['away_logo'])): ?>
+                                <img src="<?php echo asset($dernier_resultat['away_logo']); ?>" alt="<?php echo htmlspecialchars($dernier_resultat['away_team_name']); ?>">
+                            <?php else: ?>
+                                <span class="team-logo-emoji"><?php echo $is_away_club ? '⚽' : '🔴'; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="team-name <?php echo $is_away_club ? 'home' : ''; ?>">
+                            <?php echo htmlspecialchars($dernier_resultat['away_team_name']); ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="match-info">
+                    📍 <?php echo htmlspecialchars($dernier_resultat['location']); ?>
+                </div>
+                <a href="https://epreuves.fff.fr/competition/club/514340-espe-s-du-moulon-bourges/club" class="btn-card" target="_blank" rel="nooper noreferrer">Tous les Résultats →</a>
             </div>
         <?php else: ?>
-            <p style="text-align:center; color:#ccc;">Aucun résultat disponible.</p>
+            <div class="card-header">
+                <div class="card-badge"><span>⚽</span> RÉSULTATS</div>
+                <h3 class="card-title">Derniers Résultats</h3>
+            </div>
+            <div class="card-body">
+                <p class="empty-message">Aucun résultat disponible pour le moment.</p>
+            </div>
+            <div class="card-footer">
+                <a href="<?php echo url('Rejoignez_nous/nous_contactez'); ?>" class="btn-card">Tous les Résultats →</a>
+            </div>
         <?php endif; ?>
-
-        <div class="card__foot"><a class="btn-pill" href="<?= url('resultats') ?>">Tous les Résultats →</a></div>
     </div>
 
-    <!-- Prochain match -->
-    <div class="card card--gradient">
-        <header class="card__head">
-            <h3>PROCHAINES RENCONTRES</h3>
-        </header>
+    <!-- ========== CARD 2 : PROCHAINES RENCONTRES ========== -->
+    <div class="match-card">
         <?php if ($prochain_match): ?>
-            <p class="card__sub"><?= strtoupper(htmlspecialchars($prochain_match['match_type'])); ?></p>
-            <p class="card__date"><?= date('d/m/Y', strtotime($prochain_match['match_date'])); ?></p>
-            <div class="card__teams">
-                <div class="team"><?= htmlspecialchars($prochain_match['home_team_name']); ?></div>
-                <div class="team"><?= htmlspecialchars($prochain_match['away_team_name']); ?></div>
+            <?php
+            $club_name = 'E.S.MOULON';
+            $is_home_club = strcasecmp(trim($prochain_match['home_team_name']), $club_name) === 0;
+            $is_away_club = strcasecmp(trim($prochain_match['away_team_name']), $club_name) === 0;
+
+            $date_match = new DateTime($prochain_match['match_date']);
+            $formatter = new IntlDateFormatter(
+                'fr_FR',                    // Locale
+                IntlDateFormatter::NONE,    // Format de date complet (on le gère à la main)
+                IntlDateFormatter::NONE,    // Format d'heure (on gère aussi à part)
+                'Europe/Paris',             // Fuseau horaire
+                IntlDateFormatter::GREGORIAN,
+                'EEE dd MMM'                // Format : abrégé jour + jour + mois (ex: "sam. 12 oct.")
+            );
+
+            // Formater la date
+            $date_formattee = $formatter->format($date_match);
+            $heure = $date_match->format('H\hi');
+            ?>
+
+            <div class="card-header">
+                <div class="card-badge">
+                    <span>📅</span>
+                    <?php echo strtoupper(htmlspecialchars($prochain_match['match_type'])); ?>
+                </div>
+                <h3 class="card-title">Prochaines Rencontres</h3>
+                <div class="card-date"><?php echo strtoupper($date_formattee); ?> - <?php echo $heure; ?></div>
+            </div>
+
+            <div class="card-body">
+                <div class="match-display">
+                    <!-- Équipe Domicile -->
+                    <div class="team">
+                        <div class="team-logo <?php echo $is_home_club ? 'home' : ''; ?>">
+                            <?php if (!empty($prochain_match['home_logo'])): ?>
+                                <img src="<?php echo asset($prochain_match['home_logo']); ?>" alt="<?php echo htmlspecialchars($prochain_match['home_team_name']); ?>">
+                            <?php else: ?>
+                                <span class="team-logo-emoji"><?php echo $is_home_club ? '⚽' : '🔵'; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="team-name <?php echo $is_home_club ? 'home' : ''; ?>">
+                            <?php echo htmlspecialchars($prochain_match['home_team_name']); ?>
+                        </div>
+                    </div>
+
+                    <!-- VS -->
+                    <div class="match-separator">
+                        <div class="vs-text">VS</div>
+                    </div>
+
+                    <!-- Équipe Extérieur -->
+                    <div class="team">
+                        <div class="team-logo <?php echo $is_away_club ? 'home' : ''; ?>">
+                            <?php if (!empty($prochain_match['away_logo'])): ?>
+                                <img src="<?php echo asset($prochain_match['away_logo']); ?>" alt="<?php echo htmlspecialchars($prochain_match['away_team_name']); ?>">
+                            <?php else: ?>
+                                <span class="team-logo-emoji"><?php echo $is_away_club ? '⚽' : '🔴'; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="team-name <?php echo $is_away_club ? 'home' : ''; ?>">
+                            <?php echo htmlspecialchars($prochain_match['away_team_name']); ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="match-info">
+                    📍 <?php echo htmlspecialchars($prochain_match['location']); ?>
+                </div>
+                <a href="https://epreuves.fff.fr/competition/club/514340-espe-s-du-moulon-bourges/equipes" class="btn-card" target="_blank" rel="nooper noreferrer">Tous les Calendriers →</a>
             </div>
         <?php else: ?>
-            <p style="text-align:center; color:#ccc;">Aucun match prévu.</p>
+            <div class="card-header">
+                <div class="card-badge"><span>📅</span> CALENDRIER</div>
+                <h3 class="card-title">Prochaines Rencontres</h3>
+            </div>
+            <div class="card-body">
+                <p class="empty-message">Aucun match prévu pour le moment.</p>
+            </div>
+            <div class="card-footer">
+                <a href="<?php echo url('calendrier'); ?>" class="btn-card">Tous les Calendriers →</a>
+            </div>
         <?php endif; ?>
-        <div class="card__foot"><a class="btn-pill" href="<?= url('calendrier') ?>">Calendrier complet →</a></div>
     </div>
 
-    <!-- Classement -->
-    <div class="card card--gradient">
-        <header class="card__head">
-            <img src="<?= asset('img/logo R1.webp') ?>" alt="Régional 1" class="badge-league">
-            <h3>CLASSEMENT</h3>
-        </header>
-        <div class="card__foot">
-            <a class="btn-pill" href="https://centre.fff.fr/competitions/classements/" target="_blank">📊 Voir le Classement Officiel →</a>
+    <!-- ========== CARD 3 : CLASSEMENT ========== -->
+    <div class="match-card card-classement">
+        <div class="card-header">
+            <div class="card-badge">
+                <img src="<?php echo asset('img/logo R1.webp'); ?>" alt="R1">
+                RÉGIONAL 1
+            </div>
+            <h3 class="card-title">Classement</h3>
+        </div>
+
+        <div class="card-body">
+            <img src="<?php echo asset('img/logo R1.webp'); ?>" alt="Régional 1" class="classement-icon">
+            <p class="classement-text">
+                Consultez le classement officiel<br>
+                de la <strong>Régionale 1</strong><br>
+                sur le site de la FFF
+            </p>
+        </div>
+
+        <div class="card-footer">
+            <a href="https://epreuves.fff.fr/competition/club/514340-espe-s-du-moulon-bourges/equipe/2025_4473_SEM_1/classement" target="_blank" rel="noopener" class="btn-card">
+                📊 Classement Officiel →
+            </a>
         </div>
     </div>
-</section>
 
+</section>
 
 
 
@@ -235,39 +419,46 @@ $title = "Accueil — ES Moulon";
 </section>
 
 
-           <!-- ========================= LE CLUB ========================= -->
+<!-- ========================= LE CLUB ========================= -->
 
 <section class="club-hero" aria-label="Présentation du club"
-  style="--club-bg: url('<?= asset('img/fond_ecran_esm.png') ?>')">
+    style="--club-bg: url('<?= asset('img/fond_ecran_esm.png') ?>')">
 
-  <!-- deco LE CLUB -->
-  <img class="club-hero__script"
-    src="<?= asset('img/Le_club-titre.png') ?>"
-    alt="" aria-hidden="true">
+    <!-- Décoration "LE CLUB" -->
+    <img class="club-hero__script"
+        src="<?= asset('img/Le_club-titre.png') ?>"
+        alt=""
+        aria-hidden="true"
+        loading="lazy">
 
-  <div class="club-hero__text">
-    <p class="club-hero__eyebrow">En vert, et contre tous !</p>
-  </div>
+    <div class="club-hero__container">
+        <!-- Slogan principal -->
+        <p class="club-hero__eyebrow" aria-label="Slogan du club">
+            En vert, et contre tous !
+        </p>
 
-  <div class="club-hero_grid">
-    <h2 class="club-hero__title">
-      Quelques mots à propos<br>de notre club
-    </h2>
+        <!-- Contenu principal -->
+        <div class="club-hero__content">
+            <h1 class="club-hero__title">
+                Quelques mots à propos<br>de notre club
+            </h1>
 
-    <p class="club-hero__lead">
-      Découvrez notre histoire, nos valeurs et notre équipe dirigeante.
-    </p>
+            <p class="club-hero__lead">
+                Découvrez notre histoire, nos valeurs<br> et notre équipe dirigeante.
+            </p>
 
-    <div class="news-cta">
-      <a class="btn-gradient" href="<?= url('histoire_et_valeurs') ?>">Decouvrez l'ESM →</a>
+            <div class="news-cta">
+                <a class="btn-gradient" href="<?= url('Le_club/histoire_et_valeurs') ?>">Decouvrez l'ESM →</a>
+            </div>
+        </div>
     </div>
-  </div>
 
-
-  <div class="club-hero__players">
-    <img src="<?= asset('img/capture_le_club.png') ?>"
-      alt="Joueurs de l’ES Moulon">
-  </div>
+    <!-- Image alternative - Logo du club stylisé -->
+    <div class="club-hero__visual">
+        <img src="<?= asset('img/coupe_cher.webp') ?>"
+            alt="Logo et mascotte de l'ES Moulon"
+            loading="lazy">
+    </div>
 
 </section>
 
@@ -275,168 +466,6 @@ $title = "Accueil — ES Moulon";
 
 
 <!-- ========================= PARTENAIRES ========================= -->
-<style>
-    /* ========================= PARTENAIRES CAROUSEL - FORCÉ ========================= */
-    .partners {
-        overflow: hidden ;
-        padding: 60px 0 ;
-        background: #f6faf7 ;
-    }
-
-    .partners .container {
-        max-width: 1400px ;
-        margin: 0 auto ;
-        padding: 0 20px ;
-    }
-
-    .partners__head { 
-        text-align: center ;
-        margin-bottom: 50px ;
-    }
-
-    .partners__title {
-        margin: 10px 0 30px ;
-        text-transform: uppercase ;
-        letter-spacing: 0.06em ;
-        font-weight: 900 ;
-        font-size: clamp(20px, 2.5vw, 32px) ;
-    }
-
-    .partners__title .gold { 
-        color: #c7a13a ;
-    }
-
-    .partners__title .green { 
-        color: #1C995A ;
-    }
-
-    /* Wrapper du carousel */
-    .partners__wrap {
-        position: relative ;
-        overflow: hidden ;
-        background: #ffffff ;
-        padding: 50px 0 ;
-        border-radius: 20px ;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) ;
-        margin-bottom: 40px ;
-    }
-
-    /* Rail qui défile - LE PLUS IMPORTANT */
-    .partners__rail {
-        display: flex;
-        gap: 50px;
-        width: max-content;
-        animation: partnerScroll 30s linear infinite;
-    }
-
-    /* Animation du défilement */
-    @keyframes partnerScroll {
-        0% {
-            transform: translateX(0) ;
-        }
-        100% {
-            transform: translateX(-33.33%) ;
-        }
-    }
-
-    /* Pause au survol */
-    .partners__wrap:hover .partners__rail {
-        animation-play-state: paused ;
-    }
-
-    /* Cartes partenaires */
-    a.partner {
-        flex: 0 0 220px ;
-        width: 220px ;
-        height: 140px ;
-        display: flex ;
-        align-items: center ;
-        justify-content: center ;
-        background: #fff ;
-        border: 1px solid rgba(17, 136, 72, 0.28) ;
-        border-radius: 16px ;
-        padding: 25px ;
-        text-decoration: none ;
-        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08) ;
-        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        overflow: hidden ;
-    }
-
-    a.partner:hover {
-        transform: translateY(-10px) ;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15) ;
-        border-color: rgba(17, 136, 72, 0.65) ;
-        border: 2px solid rgba(17, 136, 72, 0.65);
-    }
-
-    a.partner img {
-        max-width: 100% ;
-        max-height: 100% ;
-        object-fit: contain ;
-        transition: transform 0.3s ease, filter 0.3s ease;
-        
-    }
-
-    a.partner:hover img {
-        transform: scale(1.10) ;
-       
-    }
-
-    /* Dégradés sur les bords */
-    .partners__wrap::before,
-    .partners__wrap::after {
-        content: '' ;
-        position: absolute ;
-        top: 0 ;
-        bottom: 0 ;
-        width: 100px ;
-        z-index: 5 ;
-        pointer-events: none ;
-    }
-
-    .partners__wrap::before {
-        left: 0 ;
-        background: linear-gradient(90deg, #fff 0%, transparent 100%) ;
-    }
-
-    .partners__wrap::after {
-        right: 0 ;
-        background: linear-gradient(270deg, #fff 0%, transparent 100%) ;
-    }
-
-    /* Intro */
-    .partners__intro {
-        text-align: center ;
-        margin: 0 auto 30px ;
-        max-width: 700px ;
-        line-height: 1.7 ;
-        font-size: 1.1rem ;
-        font-weight: 600 ;
-    }
-
-    /* CTA */
-    .partners__cta {
-        display: flex ;
-        justify-content: center ;
-        gap: 20px ;
-        flex-wrap: wrap ;
-    }
-
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .partners__rail {
-            gap: 30px ;
-            animation-duration: 35s ;
-        }
-        
-        a.partner {
-            flex: 0 0 150px ;
-            width: 150px ;
-            height: 100px ;
-        }
-    }
-</style>
 
 <section class="partners" aria-labelledby="partners-title">
     <div class="container">
@@ -449,10 +478,10 @@ $title = "Accueil — ES Moulon";
         <div class="partners__wrap">
             <div class="partners__rail">
                 <?php if (!empty($partenaires)): ?>
-                    <?php 
+                    <?php
                     // 🔄 TRIPLICATION pour effet défilement infini
                     $partenaires_tripled = array_merge($partenaires, $partenaires, $partenaires);
-                    foreach ($partenaires_tripled as $p): 
+                    foreach ($partenaires_tripled as $p):
                     ?>
                         <?php
                         // Gestion du logo partenaire
@@ -466,15 +495,15 @@ $title = "Accueil — ES Moulon";
                             $logo_path = asset('img/default-partner.png');
                         }
                         ?>
-                        <a class="partner" 
-                           href="<?= htmlspecialchars($p['redirect_url'] ?? '#') ?>" 
-                           target="_blank" 
-                           rel="noopener"
-                           title="<?= htmlspecialchars($p['company_name']) ?>">
+                        <a class="partner"
+                            href="<?= htmlspecialchars($p['redirect_url'] ?? '#') ?>"
+                            target="_blank"
+                            rel="noopener"
+                            title="<?= htmlspecialchars($p['company_name']) ?>">
                             <img src="<?= htmlspecialchars($logo_path) ?>"
-                                 alt="<?= htmlspecialchars($p['company_name']) ?>"
-                                 loading="lazy"
-                                 onerror="this.src='<?= asset('img/default-partner.png') ?>'">
+                                alt="<?= htmlspecialchars($p['company_name']) ?>"
+                                loading="lazy"
+                                onerror="this.src='<?= asset('img/default-partner.png') ?>'">
                         </a>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -497,44 +526,44 @@ $title = "Accueil — ES Moulon";
 <script>
     (function() {
         'use strict';
-        
+
         const rail = document.querySelector('.partners__rail');
-        
+
         if (!rail) {
             console.error('❌ Rail non trouvé');
             return;
         }
-        
+
         const partners = rail.querySelectorAll('.partner');
         console.log('✅ ' + partners.length + ' partenaires trouvés');
-        
+
         // Force l'animation JavaScript
         let position = 0;
         const speed = 0.5; // pixels par frame
         let isPaused = false;
-        
+
         function scroll() {
             if (!isPaused) {
                 position -= speed;
-                
+
                 // Largeur d'un tiers (un set complet)
                 const oneThirdWidth = rail.scrollWidth / 3;
-                
+
                 // Reset quand on atteint un tiers
                 if (Math.abs(position) >= oneThirdWidth) {
                     position = 0;
                 }
-                
+
                 rail.style.transform = `translateX(${position}px)`;
                 rail.style.transition = 'none';
             }
-            
+
             requestAnimationFrame(scroll);
         }
-        
+
         // Démarre l'animation
         scroll();
-        
+
         // Pause au survol
         const wrap = document.querySelector('.partners__wrap');
         if (wrap) {
@@ -542,66 +571,16 @@ $title = "Accueil — ES Moulon";
                 isPaused = true;
                 console.log('⏸️ Pause');
             });
-            
+
             wrap.addEventListener('mouseleave', () => {
                 isPaused = false;
                 console.log('▶️ Reprise');
             });
         }
-        
+
         console.log('🎉 Carousel démarré avec JavaScript');
     })();
 </script>
 
-<script>
-  const burger = document.getElementById('burger');
-  const menu = document.querySelector('.menu');
 
-  burger.addEventListener('click', () => {
-    burger.classList.toggle('active');
-    menu.classList.toggle('active');
-  });
-
-  document.querySelectorAll('.menu a').forEach(link => {
-    link.addEventListener('click', () => {
-      burger.classList.remove('active');
-      menu.classList.remove('active');
-    });
-  });
-</script>
-
-<script>
-  const burger = document.getElementById('burger');
-  const menu = document.querySelector('.menu');
-
-  // ouverture/fermeture du menu
-  burger.addEventListener('click', () => {
-    burger.classList.toggle('active');
-    menu.classList.toggle('active');
-  });
-
-  // ferme le menu quand on clique sur un lien simple
-  document.querySelectorAll('.menu a').forEach(link => {
-    link.addEventListener('click', () => {
-      burger.classList.remove('active');
-      menu.classList.remove('active');
-    });
-  });
-
-  // gestion des sous-menus sur mobile
-  const submenuParents = document.querySelectorAll('.has-submenu > a');
-  submenuParents.forEach(link => {
-    link.addEventListener('click', (e) => {
-      if (window.innerWidth <= 960) {
-        e.preventDefault(); // empêche le lien de rediriger
-        const parent = link.parentElement;
-        parent.classList.toggle('open');
-
-        // bascule la classe sur le <ul> du sous-menu
-        const submenu = parent.querySelector('.submenu');
-        submenu.classList.toggle('open');
-      }
-    });
-  });
-</script>
 

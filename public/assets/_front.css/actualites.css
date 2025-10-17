@@ -9,6 +9,11 @@
     box-sizing: border-box;
 }
 
+:root {
+            --vert-esm: #1c995a;
+            --vert-fonce: #0b562b;
+        }
+
 body {
     font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #FDFBF7;
@@ -29,13 +34,12 @@ body {
    HEADER PAGE ACTUALITÉS
    ============================== */
 .page-header {
-    background: radial-gradient(circle at top left, #1c995a 0%, #0e7038 60%, #0b5a2d 100%);
+    background: linear-gradient(180deg, var(--vert-fonce), var(--vert-esm));
     color: #fff;
     padding: 40px 0 40px;
     text-align: center;
     margin: 0 auto 40px;   /* centre horizontalement */
     max-width: 1200px;     /* même largeur que le reste du site */
-    border-radius: 0 0 30px 30px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
@@ -44,7 +48,7 @@ body {
 }
 
 .page-header h1 {
-    font-size: 3rem;
+    font-size: 2.7rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -52,7 +56,7 @@ body {
 }
 
 .page-header p {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     opacity: 0.95;
 }
 

@@ -109,233 +109,229 @@ try {
 // Image de fond (logo club) — ajuste le chemin si besoin
 $bg_logo = asset('uploads/sc_esmoulon.png'); // par ex. /public/assets/img/logo_moulon.png
 ?>
-<!DOCTYPE html>
-<html lang="fr">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><?= htmlspecialchars($team['name'] . ' ' . $team['level']) ?> — Effectif</title>
-    <style>
-        :root {
-            --green: #009639;
-            --dark-green: #016f29;
-            --white: #fff;
-            --grey: #f5f5f5;
-            --black: #111;
-            --shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-            --transition: all 0.3s ease-in-out;
-        }
+<style>
+    :root {
+        --green: #009639;
+        --dark-green: #016f29;
+        --white: #fff;
+        --grey: #f5f5f5;
+        --black: #111;
+        --shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        --transition: all 0.3s ease-in-out;
+    }
 
-        body {
-            margin: 0;
-            font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--white);
-            color: var(--black);
-            overflow-x: hidden;
-        }
+    body {
+        margin: 0;
+        font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
+        background-color: var(--white);
+        color: var(--black);
+        overflow-x: hidden;
+    }
 
-        /* HERO */
-        .hero-pro {
+    /* HERO */
+    .hero-pro {
+    position: relative;
+    width: 100%;
+    height: 450px; 
+    overflow: hidden;
+    }
+
+    .hero-pro .hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;       
+    object-position: center; 
+    z-index: 0;
+    }
+
+    /*  dégradé sombre */
+    .hero-pro .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.85));
+    z-index: 1;
+    }
+
+    /*  Contenu centré */
+    .hero-pro .hero-content {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    text-align: center;
+    top: 65%;
+    transform: translateY(-50%);
+    text-transform: uppercase;
+    animation: fadeIn 1.2s ease-in-out;
+    }
+
+    /* Logo centré */
+    .hero-pro .hero-content .hero-logo {
+    width: 100px;
+    border-radius: 50%;
+    height: auto;
+    margin-top: 30px;
+    animation: fadeDown 1.2s ease-in-out;
+    }
+
+    .hero-content{
+        font-size: 2rem;
+    }
+
+    /*  Animations */
+    @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(-50%); }
+    }
+
+    @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* WRAP */
+    .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 60px 20px 100px;
+    }
+
+    /* SECTION TITRES */
+    .section h2 {
+        text-align: center;
+        text-transform: uppercase;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark-green);
+        margin: 50px auto 40px;
         position: relative;
-        width: 100%;
-        height: 450px; 
-        overflow: hidden;
-        }
+        width: max-content;
+    }
 
-        .hero-pro .hero-bg {
+    .section h2::after {
+        content: "";
         position: absolute;
-        top: 0;
-        left: 0;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 3px;
+        background: var(--green);
+        border-radius: 4px;
+    }
+
+    /* GRILLE */
+    .grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 30px;
+        padding: 0 20px;
+    }
+
+    /* CARTES */
+    .card {
+        width: 220px;
+        height: 370px;
+        background: var(--white);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        text-align: center;
+        overflow: hidden;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    /* IMAGE */
+    .card .top {
+        flex: 0 0 250px;
+        overflow: hidden;
+        background: var(--grey);
+    }
+
+    .card .top img {
         width: 100%;
         height: 100%;
-        object-fit: cover;       
-        object-position: center; 
-        z-index: 0;
-        }
+        object-fit: cover;
+        transition: var(--transition);
+    }
 
-        /*  dégradé sombre */
-        .hero-pro .overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.85));
-        z-index: 1;
-        }
+    .card:hover .top img {
+        transform: scale(1.05);
+    }
 
-        /*  Contenu centré */
-        .hero-pro .hero-content {
-        position: relative;
-        z-index: 2;
-        color: #fff;
-        text-align: center;
-        top: 65%;
-        transform: translateY(-50%);
+    /* TEXTES */
+    .card .name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--black);
+        margin-top: 10px;
         text-transform: uppercase;
-        animation: fadeIn 1.2s ease-in-out;
-        }
+    }
 
-        /* Logo centré */
+    .card .role,
+    .card .pos {
+        color: var(--green);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 14px;
+    }
+
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+
+        .hero-pro {
+            height: 320px;
+        }
         .hero-pro .hero-content .hero-logo {
-        width: 100px;
-        border-radius: 50%;
-        height: auto;
-        margin-top: 30px;
-        animation: fadeDown 1.2s ease-in-out;
+            width: 80px;
         }
-
-        .hero-content{
-            font-size: 2rem;
-        }
-
-        /*  Animations */
-        @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(-50%); }
-        }
-
-        @keyframes fadeDown {
-        from { opacity: 0; transform: translateY(-15px); }
-        to { opacity: 1; transform: translateY(0); }
-        }
-
-        /*  Responsive */
-        @media (max-width: 768px) {
-            .hero-pro {
-                height: 320px;
-            }
-            .hero-pro .hero-content .hero-logo {
-                width: 80px;
-            }
-            .hero-pro h1 {
-                font-size: 1.5rem;
-            }
-        }
-
-
-        /* WRAP */
-        .wrap {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 20px 100px;
-        }
-
-        /* SECTION TITRES */
-        .section h2 {
-            text-align: center;
-            text-transform: uppercase;
+        .hero-pro h1 {
             font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark-green);
-            margin: 50px auto 40px;
-            position: relative;
-            width: max-content;
         }
 
-        .section h2::after {
-            content: "";
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-            height: 3px;
-            background: var(--green);
-            border-radius: 4px;
-        }
-
-        /* GRILLE */
         .grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            padding: 0 20px;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 20px;
         }
 
-        /* CARTES */
         .card {
-            width: 220px;
-            height: 370px;
-            background: var(--white);
-            border-radius: 14px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            overflow: hidden;
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
+            width: 180px;
+            height: 330px;
         }
 
-        .card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
-        }
-
-        /* IMAGE */
         .card .top {
-            flex: 0 0 250px;
-            overflow: hidden;
-            background: var(--grey);
+            flex: 0 0 200px;
+        }
+    }
+
+    @media (max-width: 590px){
+        .hero-pro {
+        height: 200px;
         }
 
-        .card .top img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: var(--transition);
+        .hero-pro .hero-content .hero-logo {
+            width: 80px;
         }
 
-        .card:hover .top img {
-            transform: scale(1.05);
+        .hero-content {
+            font-size: 1rem;
         }
+    }
 
-        /* TEXTES */
-        .card .name {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--black);
-            margin-top: 10px;
-            text-transform: uppercase;
-        }
-
-        .card .role,
-        .card .pos {
-            color: var(--green);
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 14px;
-        }
+</style>
 
 
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .hero-pro {
-                height: 340px;
-            }
-
-            .hero-pro h1 {
-                font-size: 1.8rem;
-            }
-
-            .grid {
-                grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-                gap: 20px;
-            }
-
-            .card {
-                width: 180px;
-                height: 330px;
-            }
-
-            .card .top {
-                flex: 0 0 200px;
-            }
-        }
-    </style>
-
-</head>
-
-<body>
     <!-- HERO -->
     <section class="hero-pro">
         <img src="<?= asset('uploads/loups-moulon.png') ?>" alt="Bannière ES Moulon" class="hero-bg">
@@ -397,7 +393,3 @@ $bg_logo = asset('uploads/sc_esmoulon.png'); // par ex. /public/assets/img/logo_
         </section>
     <?php endforeach; ?>
     </div>
-
-</body>
-
-</html>

@@ -3,14 +3,6 @@ require_once __DIR__ . '/../../includes/tracker.php';
 require_once __DIR__ . '/../../includes/config.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Classement - ES Moulon</title>
-  <link rel="stylesheet" href="<?= asset('css/style.css') ?>">
-  
   <style>
     :root {
       --green: #009639;
@@ -20,96 +12,98 @@ require_once __DIR__ . '/../../includes/config.php';
     }
 
     body {
-    font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
-    background: var(--white);
-    color: var(--black);
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
+      font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
+      background: var(--white);
+      color: var(--black);
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
-      /* HERO */
+
+    /* HERO */
     .hero-pro {
-    position: relative;
-    width: 100%;
-    height: 450px; 
-    overflow: hidden;
+      position: relative;
+      width: 100%;
+      height: 450px;
+      overflow: hidden;
     }
 
     .hero-pro .hero-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;       
-    object-position: center; 
-    z-index: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      z-index: 0;
     }
 
-      /*  dégradé sombre */
+    /*  dégradé sombre */
     .hero-pro .overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.85));
-    z-index: 1;
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.85));
+      z-index: 1;
     }
 
-      /*  Contenu centré */
+    /*  Contenu centré */
     .hero-pro .hero-content {
-    position: relative;
-    z-index: 2;
-    color: #fff;
-    text-align: center;
-    top: 65%;
-    transform: translateY(-50%);
-    text-transform: uppercase;
-    animation: fadeIn 1.2s ease-in-out;
+      position: relative;
+      z-index: 2;
+      color: #fff;
+      text-align: center;
+      top: 65%;
+      transform: translateY(-50%);
+      text-transform: uppercase;
+      animation: fadeIn 1.2s ease-in-out;
     }
 
-      /* Logo centré */
+    /* Logo centré */
     .hero-pro .hero-content .hero-logo {
-    width: 100px;
-    border-radius: 50%;
-    height: auto;
-    margin-top: 30px;
-    animation: fadeDown 1.2s ease-in-out;
+      width: 100px;
+      border-radius: 50%;
+      height: auto;
+      margin-top: 30px;
+      animation: fadeDown 1.2s ease-in-out;
     }
 
-    .hero-content{
-        font-size: 2rem;
+    .hero-content {
+      font-size: 2rem;
     }
 
-      /*  Animations */
+    /*  Animations */
     @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(-50%); }
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(-50%);
+      }
     }
 
     @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-15px); }
-    to { opacity: 1; transform: translateY(0); }
-    }
+      from {
+        opacity: 0;
+        transform: translateY(-15px);
+      }
 
-    /*  Responsive */
-    @media (max-width: 768px) {
-      .hero-pro {
-          height: 320px;
-      }
-      .hero-pro .hero-content .hero-logo {
-          width: 80px;
-      }
-      .hero-pro h1 {
-          font-size: 1.5rem;
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 
     .classement-section {
-      padding: 80px 20px;
-      background: var(--grey);
+      padding: 50px 20px;
+      
     }
 
-    .classement-section h1 {
+    .classement-section h2 {
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--dark-green);
@@ -123,17 +117,15 @@ require_once __DIR__ . '/../../includes/config.php';
     }
 
     .classement-img {
-      max-width: 600px;
+      max-width: 700px;
       width: 100%;
       height: auto;
       margin: 0 auto 30px;
-      border-radius: 10px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
       transition: transform 0.3s ease;
     }
 
     .classement-img:hover {
-      transform: scale(1.02);
+      transform: scale(1.05);
     }
 
     .btn-fff {
@@ -151,9 +143,41 @@ require_once __DIR__ . '/../../includes/config.php';
     .btn-fff:hover {
       background: var(--dark-green);
     }
+
+     /*  Responsive */
+    @media (max-width: 768px) {
+      .hero-pro {
+        height: 320px;
+      }
+
+      .hero-pro .hero-content .hero-logo {
+          width: 120px;
+      }
+
+      .hero-content {
+        font-size: 1.5rem;
+      }
+    }
+
+    @media (max-width: 590px){
+        .hero-pro {
+        height: 200px;
+      }
+
+      .hero-pro .hero-content .hero-logo {
+          width: 80px;
+      }
+
+      .hero-content {
+        font-size: 1.2rem;
+      }
+    }
+
+
   </style>
 
 </head>
+
 <body>
 
   <section class="hero-pro">
@@ -166,23 +190,16 @@ require_once __DIR__ . '/../../includes/config.php';
   </section>
 
   <section class="classement-section">
-    <h1>Consultez le classement officiel</h1>
+    <h2>Consultez le classement officiel</h2>
     <p>Retrouvez le classement complet sur le site de la <em>Fédération Française de Football</em> !</p>
 
     <a href=https://epreuves.fff.fr/competition/club/514340-espe-s-du-moulon-bourges/equipe/2025_4473_SEM_1/classement
-       target="_blank" rel="noopener">
-      <img src="<?= asset('uploads/fff-classement.png') ?>" 
-           alt="Classement FFF" class="classement-img">
-    </a>
-
-    <br>
-    <a href="https://epreuves.fff.fr/competition/club/514340-espe-s-du-moulon-bourges/equipe/2025_4473_SEM_1/classement
-       target="_blank" rel="noopener"
-       class="btn-fff">
-       🔗 Voir le classement sur FFF.fr
-
-       <p style="font-size:0.9rem;color:#555;margin-top:10px;">
+      target="_blank" rel="noopener">
+      <img src="<?= asset('uploads/img_ordi_classement.webp') ?>"
+        alt="Classement FFF" class="classement-img">
+      <p style="font-size:0.9rem;color:#555;margin-top:10px;">
         Source officielle : Fédération Française de Football (FFF)
-       </p>
+      </p>
     </a>
+
   </section>

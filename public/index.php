@@ -1,4 +1,3 @@
-
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -6,36 +5,93 @@ ini_set('display_errors', 1);
 <?php
 require_once __DIR__ . '/../includes/config.php';
 
+// ========== RÉCUPÉRATION DES DONNÉES POUR LES CARDS AVEC LOGOS ==========
 
-// **********************Récupérer le dernier résultat**********************************
+// 1. DERNIER RÉSULTAT (match déjà joué avec score + logos)
 $stmt = $pdo->query("
-    SELECT m.*, 
-           home.name as home_team, 
-           away.name as away_team
+    SELECT 
+        m.id_match,
+        m.match_date,
+        m.home_score,
+        m.away_score,
+        m.match_type,
+        m.location,
+        
+        -- Équipe domicile
+        th.name AS home_team_name,
+        th.id_club_team AS home_is_club,
+        th.level AS home_level,
+        mh.file_path AS home_logo,
+        
+        -- Équipe extérieur
+        ta.name AS away_team_name,
+        ta.id_club_team AS away_is_club,
+        ta.level AS away_level,
+        ma.file_path AS away_logo
+        
     FROM matches m
-    LEFT JOIN teams home ON m.id_home_team = home.id_team
-    LEFT JOIN teams away ON m.id_away_team = away.id_team
-    WHERE m.match_date < NOW() 
-    AND m.home_score IS NOT NULL
+    INNER JOIN teams th ON m.id_home_team = th.id_team
+    INNER JOIN teams ta ON m.id_away_team = ta.id_team
+    LEFT JOIN medias mh ON th.id_media = mh.id_media
+    LEFT JOIN medias ma ON ta.id_media = ma.id_media
+    
+    WHERE (th.id_club_team = 1 OR ta.id_club_team = 1)
+      AND m.home_score IS NOT NULL
+      AND m.away_score IS NOT NULL
+      AND m.match_date < NOW()
+    
     ORDER BY m.match_date DESC
     LIMIT 1
 ");
 $dernier_resultat = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Récupérer le prochain match
+// 2. PROCHAIN MATCH (match à venir sans score + logos)
 $stmt = $pdo->query("
-    SELECT m.*, 
-           home.name as home_team, 
-           away.name as away_team
+    SELECT 
+        m.id_match,
+        m.match_date,
+        m.match_type,
+        m.location,
+        
+        -- Équipe domicile
+        th.name AS home_team_name,
+        th.id_club_team AS home_is_club,
+        th.level AS home_level,
+        mh.file_path AS home_logo,
+        
+        -- Équipe extérieur
+        ta.name AS away_team_name,
+        ta.id_club_team AS away_is_club,
+        ta.level AS away_level,
+        ma.file_path AS away_logo
+        
     FROM matches m
-    LEFT JOIN teams home ON m.id_home_team = home.id_team
-    LEFT JOIN teams away ON m.id_away_team = away.id_team
-    WHERE m.match_date >= NOW()
+    INNER JOIN teams th ON m.id_home_team = th.id_team
+    INNER JOIN teams ta ON m.id_away_team = ta.id_team
+    LEFT JOIN medias mh ON th.id_media = mh.id_media
+    LEFT JOIN medias ma ON ta.id_media = ma.id_media
+    
+    WHERE (th.id_club_team = 1 OR ta.id_club_team = 1)
+      AND m.match_date >= NOW()
+    
     ORDER BY m.match_date ASC
     LIMIT 1
 ");
 $prochain_match = $stmt->fetch(PDO::FETCH_ASSOC);
 
+/**
+ * Fonction pour afficher le logo d'une équipe
+ */
+function displayTeamLogo($logo_path, $team_name, $is_club) {
+    if (!empty($logo_path)) {
+        // Logo existe dans la BDD
+        return '<img src="' . asset($logo_path) . '" alt="' . htmlspecialchars($team_name) . '">';
+    } else {
+        // Pas de logo : afficher emoji
+        $emoji = $is_club ? '⚽' : '🔴';
+        return '<span class="team__logo-emoji">' . $emoji . '</span>';
+    }
+}
 
 //******************************************************************************************************************** */
 
@@ -84,7 +140,6 @@ $map = [
   'confidentialite'                => PAGES.'/confidentialite.php',
   'droits'                         => PAGES.'/droits.php',
 ];
-
 
 $file = $map[$path] ?? null;
 

@@ -20,8 +20,7 @@ require_once __DIR__ . '/../../includes/config.php';
     <div class="contain text-center" style="padding:80px 20px;">
       <h1 class="title">TOI AUSSI DEVIENS ARBITRE !</h1>
       <p class="subtitle">
-        À l’ES Moulon, nous sommes toujours ouverts à accueillir de nouveaux passionnés pour contribuer à la vie du club.<br>
-        Si tu aimes le football et souhaites le vivre autrement, l’arbitrage est une voie passionnante et essentielle au bon déroulement du jeu.
+        L’ES Moulon accueille de nouveaux arbitres pour faire vivre le jeu avec passion
       </p>
     </div>
   </section>

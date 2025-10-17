@@ -1,10 +1,11 @@
 <?php
-require_once __DIR__.'/config.php';
+require_once __DIR__ . '/config.php';
 $title = $title ?? 'ES Moulon';
 $pageClass = $pageClass ?? '';
 ?>
 <!doctype html>
 <html lang="fr">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -20,4 +21,5 @@ $pageClass = $pageClass ?? '';
   <!-- si tu gardes generics.css -->
   <link rel="stylesheet" href="<?= asset('_front.css/generics.css') ?>">
 </head>
+
 <body class="<?= htmlspecialchars($pageClass) ?>">

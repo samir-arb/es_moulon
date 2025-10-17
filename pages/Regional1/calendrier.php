@@ -114,19 +114,6 @@ foreach ($matchs as $m) {
         to { opacity: 1; transform: translateY(0); }
         }
 
-        /*  Responsive */
-        @media (max-width: 768px) {
-            .hero-pro {
-                height: 320px;
-            }
-            .hero-pro .hero-content .hero-logo {
-                width: 80px;
-            }
-            .hero-pro h1 {
-                font-size: 1.5rem;
-            }
-        }
-
         /* CONTAINER */
         .calendar-container {
             max-width: 1000px;
@@ -449,6 +436,16 @@ foreach ($matchs as $m) {
 
         /* RESPONSIVE */
         @media (max-width: 768px) {
+
+            .hero-pro {
+                height: 320px;
+            }
+            .hero-pro .hero-content .hero-logo {
+                width: 120px;
+            }
+            .hero-content {
+                font-size: 1.5rem;
+            }
             .calendar-hero h1 {
                 font-size: 1.5rem;
             }
@@ -483,6 +480,22 @@ foreach ($matchs as $m) {
 
             .cal-match-actions {
                 align-items: center;
+            }
+        }
+
+        
+
+        @media (max-width: 590px){
+            .hero-pro {
+            height: 200px;
+            }
+
+            .hero-pro .hero-content .hero-logo {
+                width: 80px;
+            }
+
+            .hero-content {
+                font-size: 1rem;
             }
         }
     </style>

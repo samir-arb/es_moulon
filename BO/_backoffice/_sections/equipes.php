@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_team'])) {
     $id_category = (int)$_POST['id_category'];
     $level = trim($_POST['level']);
     $id_media = !empty($_POST['id_media']) ? (int)$_POST['id_media'] : null;
+    $id_team_logo = !empty($_POST['id_team_logo']) ? (int)$_POST['id_team_logo'] : null;
     $id_club_team = isset($_POST['is_opponent']) ? 0 : 1; // Checkbox cochée = adversaire (0), sinon club (1)
 
     if (empty($name) || $id_category === 0) {
@@ -79,15 +80,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_team'])) {
     } else {
         if ($id > 0) {
             // MODIFICATION
-            $sql = "UPDATE teams SET name = ?, id_category = ?, level = ?, id_media = ?, id_club_team = ? WHERE id_team = ?";
+            $sql = "UPDATE teams SET name = ?, id_category = ?, level = ?, id_media = ?, id_team_logo = ?, id_club_team = ? WHERE id_team = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('sisiii', $name, $id_category, $level, $id_media, $id_club_team, $id);
+            $stmt->bind_param('sisiiii', $name, $id_category, $level, $id_media, $id_team_logo, $id_club_team, $id);
             $message = "Équipe modifiée avec succès.";
         } else {
             // AJOUT
-            $sql = "INSERT INTO teams (name, id_category, level, id_media, id_club_team) VALUES (?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO teams (name, id_category, level, id_media, id_team_logo, id_club_team) VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('sisii', $name, $id_category, $level, $id_media, $id_club_team);
+            $stmt->bind_param('sisiii', $name, $id_category, $level, $id_media, $id_team_logo, $id_club_team);
             $message = "Équipe ajoutée avec succès.";
         }
 
@@ -156,12 +157,14 @@ if ($filter === 'opponents') {
 } else {
     $sql = "
         SELECT t.id_team, t.name, t.level, c.name AS category, c.id_category,
-               COUNT(DISTINCT ucf.id_user) as nb_players,
-               med.file_path as team_image
+            COUNT(DISTINCT ucf.id_user) as nb_players,
+            med.file_path as team_image,
+            logo.file_path as team_logo
         FROM teams t
         JOIN categories c ON t.id_category = c.id_category
         LEFT JOIN users_club_functions ucf ON ucf.id_team = t.id_team AND ucf.id_club_function = 1
         LEFT JOIN medias med ON t.id_media = med.id_media
+        LEFT JOIN medias logo ON t.id_team_logo = logo.id_media
         WHERE t.id_club_team = 1
         GROUP BY t.id_team
         ORDER BY c.name, t.level, t.name
@@ -350,9 +353,9 @@ $stats_opponents = $conn->query("SELECT COUNT(*) as total FROM teams WHERE id_cl
                 </div>
 
                 <div class="form-group">
-                    <label for="id_media">Image / Photo de l'équipe</label>
-                    <select id="id_media" name="id_media" onchange="previewImage(this)">
-                        <option value="">-- Aucune image --</option>
+                    <label for="id_media">📸 Photo d'équipe (présentation)</label>
+                    <select id="id_media" name="id_media" onchange="previewImage(this, 'photo')">
+                        <option value="">-- Aucune photo --</option>
                         <?php foreach ($medias_list as $media_item): ?>
                             <option value="<?= $media_item['id_media'] ?>"
                                 data-img="<?= asset($media_item['file_path']) ?>"
@@ -361,9 +364,27 @@ $stats_opponents = $conn->query("SELECT COUNT(*) as total FROM teams WHERE id_cl
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <div id="imagePreview" style="margin-top:12px;"></div>
+                    <div id="photoPreview" style="margin-top:12px;"></div>
                     <small style="color:#6b7280;display:block;margin-top:8px;">
-                        Pas d'image ? <a href="<?= $adminUrl ?>?section=medias" target="_blank" style="color:#3b82f6;">Uploadez-en une ici</a>
+                        Photo de groupe pour la page de présentation de l'équipe
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_team_logo">🏆 Logo officiel (pour les matchs)</label>
+                    <select id="id_team_logo" name="id_team_logo" onchange="previewImage(this, 'logo')">
+                        <option value="">-- Aucun logo --</option>
+                        <?php foreach ($medias_list as $media_item): ?>
+                            <option value="<?= $media_item['id_media'] ?>"
+                                data-img="<?= asset($media_item['file_path']) ?>"
+                                <?= ($edit_team && isset($edit_team['id_team_logo']) && $edit_team['id_team_logo'] == $media_item['id_media']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($media_item['file_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div id="logoPreview" style="margin-top:12px;"></div>
+                    <small style="color:#6b7280;display:block;margin-top:8px;">
+                        Logo utilisé dans les cards de matchs, calendrier et résultats
                     </small>
                 </div>
 
@@ -457,9 +478,11 @@ $stats_opponents = $conn->query("SELECT COUNT(*) as total FROM teams WHERE id_cl
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function previewImage(select) {
+        function previewImage(select, type) {
             const opt = select.options[select.selectedIndex];
-            const prev = document.getElementById('imagePreview');
+            const previewId = type === 'logo' ? 'logoPreview' : 'photoPreview';
+            const prev = document.getElementById(previewId);
+            
             if (opt.dataset.img) {
                 prev.innerHTML = '<img src="' + opt.dataset.img + '" style="max-width:200px;max-height:200px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">';
             } else {
@@ -468,9 +491,16 @@ $stats_opponents = $conn->query("SELECT COUNT(*) as total FROM teams WHERE id_cl
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            const select = document.getElementById('id_media');
-            if (select && select.value) {
-                previewImage(select);
+            // Prévisualiser la photo au chargement
+            const selectPhoto = document.getElementById('id_media');
+            if (selectPhoto && selectPhoto.value) {
+                previewImage(selectPhoto, 'photo');
+            }
+            
+            // Prévisualiser le logo au chargement
+            const selectLogo = document.getElementById('id_team_logo');
+            if (selectLogo && selectLogo.value) {
+                previewImage(selectLogo, 'logo');
             }
         });
     </script>

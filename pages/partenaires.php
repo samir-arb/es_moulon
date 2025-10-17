@@ -39,8 +39,8 @@ $title = "Nos Partenaires — ES Moulon";
         }
 
         :root {
-            --vert-esm: #00a651;
-            --vert-fonce: #008040;
+            --vert-esm: #1c995a;
+            --vert-fonce: #0b562b;
             --vert-clair: #4ade80;
             --or: #fbbf24;
             --blanc: #ffffff;
@@ -66,13 +66,12 @@ $title = "Nos Partenaires — ES Moulon";
         /* ========================= HERO ========================= */
 
         .hero--partners {
-            background: radial-gradient(circle at top left, #1c995a 0%, #0e7038 60%, #0b5a2d 100%);
+            background: linear-gradient(180deg, var(--vert-fonce), var(--vert-esm));
             color: #fff;
             text-align: center;
             padding: 40px 0 40px;
             position: relative;
             overflow: hidden;
-            border-radius: 0 0 30px 30px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
 
