@@ -1,10 +1,23 @@
 <?php
-require_once __DIR__ . '/../includes/tracker.php'; // Enregistre la visite
-?>
-<?php $title = "Tous droits réservés — ES Moulon"; ?>
+require_once __DIR__ . '/../includes/config.php';
 
-<div class="legal">
-  <h1>Tous droits réservés</h1>
+?>
+
+<link rel="stylesheet" href="<?= asset('_front.css/legal-pages.css') ?>">
+
+<main class="page-content">
+  <section class="page-header">
+    <div class="container">
+      <h1>Tous droits réservés</h1>
+      <p class="subtitle">Propriété intellectuelle et utilisation du contenu</p>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="container legal-content">
+
+<section>
+  <h2>© <?= date("Y") ?> — ES Moulon</h2>
 
   <p>
     L’ensemble du contenu présent sur ce site (textes, images, vidéos, logos, icônes, documents, etc.) est protégé par le droit d’auteur et, le cas échéant, par d’autres droits de propriété intellectuelle.
@@ -27,9 +40,13 @@ require_once __DIR__ . '/../includes/tracker.php'; // Enregistre la visite
   <section>
     <h2>Responsabilité</h2>
     <p>
-      Le club <strong>ES Moulon</strong> se réserve le droit d’engager toute action en justice nécessaire en cas de non-respect de ces droits.
+      Le club <strong>ES Moulon</strong> se réserve le droit d'engager toute action en justice nécessaire en cas de non-respect de ces droits.
     </p>
   </section>
 
-  <p>© <?= date("Y") ?> — ES Moulon. Tous droits réservés.</p>
-</div>
+</section>
+
+    </div>
+  </section>
+</main>
+

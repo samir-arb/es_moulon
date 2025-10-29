@@ -176,9 +176,6 @@ require_once __DIR__ . '/../../includes/config.php';
 
   </style>
 
-</head>
-
-<body>
 
   <section class="hero-pro">
     <img src="<?= asset('uploads/loups-moulon.png') ?>" alt="Bannière ES Moulon" class="hero-bg">

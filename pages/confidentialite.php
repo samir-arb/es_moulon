@@ -1,80 +1,86 @@
 <?php
-require_once __DIR__ . '/../includes/tracker.php'; // Enregistre la visite
-?>
-<?php $title = "Politique de confidentialité — ES Moulon"; ?>
+require_once __DIR__ . '/../includes/config.php';
 
-<div class="legal">
-  <h1>Politique de confidentialité</h1>
+?>
+
+<link rel="stylesheet" href="<?= asset('_front.css/legal-pages.css') ?>">
+
+<main class="page-content">
+  <section class="page-header">
+    <div class="container">
+      <h1>Politique de confidentialité</h1>
+      <p class="subtitle">Protection de vos données personnelles — Conforme RGPD</p>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="container legal-content">
 
   <section>
     <h2>ARTICLE 1 — Préambule</h2>
     <p>
-      Cette politique de confidentialité s’applique au site :
-      <a href="https://esmoulon.fr" target="_blank" rel="noopener">https://esmoulon.fr</a>.
-      Elle a pour but d’exposer aux utilisateurs :
+      Le site <strong>esmoulon.fr</strong> (ci-après « le Site ») édité par l'<strong>ES Moulon</strong> 
+      s'engage à protéger les données personnelles de ses utilisateurs, conformément à la réglementation en vigueur :
     </p>
     <ul>
-      <li>comment sont collectées et traitées leurs données à caractère personnel (ex. nom, e-mail, IP, etc.) ;</li>
-      <li>les droits des utilisateurs concernant ces données ;</li>
-      <li>l’identité du responsable de traitement ;</li>
-      <li>à qui les données peuvent être transmises ;</li>
-      <li>la politique en matière de « cookies ».</li>
+      <li>Règlement général sur la protection des données (RGPD — Règlement UE 2016/679) ;</li>
+      <li>Loi n° 78-17 du 6 janvier 1978 dite « Informatique et Libertés » (modifiée) ;</li>
+      <li>Article 82 de la loi Informatique et Libertés concernant les cookies et traceurs.</li>
     </ul>
-    <p>Cette politique complète les <a href="<?= url('mentions') ?>">Mentions légales</a>.</p>
+    <p>
+      La présente politique décrit la manière dont nous collectons, utilisons et protégeons 
+      vos informations personnelles lorsque vous utilisez notre Site.
+    </p>
   </section>
 
   <section>
-    <h2>ARTICLE 2 — Principes généraux et base légales (RGPD)</h2>
-    <p>
-        Conformément au Règlement (UE) 2016/679 (RGPD), le traitement des données à caractère personnel effectué via le site 
-        <a href="https://esmoulon.fr" target="_blank">https://esmoulon.fr</a> respecte les principes suivants :
-    </p>
+    <h2>ARTICLE 2 — Principes de protection des données</h2>
+    <p>Conformément à l'article 5 du RGPD, vos données personnelles sont :</p>
     <ul>
-        <li>Licéité, loyauté et transparence ;</li>
-        <li>Finalités déterminées, explicites et légitimes ;</li>
-        <li>Minimisation des données collectées ;</li>
-        <li>Limitation de la durée de conservation ;</li>
-        <li>Intégrité et confidentialité des données.</li>
+      <li><strong>Traitées de manière licite, loyale et transparente</strong> ;</li>
+      <li><strong>Collectées uniquement pour des finalités déterminées</strong> ;</li>
+      <li><strong>Adéquates, pertinentes et limitées</strong> au nécessaire (principe de minimisation) ;</li>
+      <li><strong>Conservées pendant une durée limitée</strong>, sauf obligation légale ;</li>
+      <li><strong>Protégées par des mesures techniques et organisationnelles appropriées</strong>.</li>
     </ul>
-    <p>Le traitement des données s’appuie sur l’une des <strong>bases légales</strong> suivantes, selon les cas :
-    </p>
-
-    <ul>
-      <li><strong>Le consentement explicite</strong> de la personne concernée, notamment lors de l’envoi d’un formulaire de contact ou de candidature;</li>
-
-      <li><strong>L’exécution d’un contrat</strong> ou de mesures précontractuelles, par exemple pour la gestion d’un membre ou d’un candidat;</li>
-
-      <li><strong>L’intérêt légitime</strong> de l’association, dans le cadre de la gestion administrative, organisationnelle ou technique du site;</li>
-
-      <li><strong>Le respect d’une obligation légale</strong>, notamment en matière de sécurité ou de conformité réglementaire.</li>
-    </ul>
-
   </section>
 
   <section>
     <h2>ARTICLE 3 — Données collectées et finalités</h2>
-    <h3>A. Données</h3>
-    <p>Dénomination du club/association, nom, e-mail, n° de téléphone, message (le cas échéant).</p>
+    
+    <h3>3.1 Données des formulaires de contact</h3>
+    <p><strong>Données collectées :</strong> Nom, prénom, e-mail, téléphone (optionnel), message.</p>
+    <p><strong>Collecte :</strong> Via les formulaires de contact, candidature arbitre, bénévole ou partenaire.</p>
+    <p><strong>Conservation :</strong> 3 ans après le dernier contact (sauf obligation légale différente).</p>
+    <p><strong>Finalités :</strong> Répondre aux sollicitations, gérer les candidatures, organiser la vie du club.</p>
+    <p><strong>Base légale :</strong> Consentement explicite de l'utilisateur lors de l'envoi du formulaire.</p>
+    <p><strong>Transmission :</strong> Les données ne sont pas transmises à des tiers hors obligations légales.</p>
+    
+    <h3>3.2 Données de navigation et statistiques (Tracking)</h3>
+    <p><strong>Données collectées :</strong> Adresse IP, User-Agent (navigateur et système d'exploitation), pages visitées, 
+    URL de provenance (referer), date et heure de la visite.</p>
+    <p><strong>Collecte :</strong> Uniquement si vous <strong>acceptez les cookies</strong> via la bannière de consentement.</p>
+    <p><strong>Conservation :</strong> Les données de navigation sont conservées pendant toute la durée d'exploitation du site 
+    en phase de développement. En production, une durée de <strong>12 à 24 mois</strong> sera appliquée conformément aux recommandations de la CNIL.</p>
+    <p><strong>Finalités :</strong> Analyser le trafic du site, améliorer l'expérience utilisateur, comprendre les pages les plus consultées.</p>
+    <p><strong>Base légale :</strong> Consentement explicite via la bannière cookies (Article 82 de la loi Informatique et Libertés).</p>
+    <p><strong>Droit de refus :</strong> Vous pouvez refuser le tracking en cliquant sur "Refuser" dans la bannière cookies. 
+    Dans ce cas, <strong>aucune donnée de navigation ne sera collectée</strong>. Vous pouvez modifier votre choix à tout moment 
+    via le lien "🍪 Gérer les cookies" en bas de page.</p>
+    <p><strong>Hébergement :</strong> Les données sont stockées dans une base de données MySQL hébergée en France.</p>
 
-    <h3>B. Collecte</h3>
-    <p>Lors d’un envoi via le formulaire de contact ou lors d’une prise de contact directe par e-mail.</p>
-
-    <h3>C. Conservation</h3>
-    <p>Durée maximale indicative : 3 ans après le dernier contact, sauf obligation légale différente.</p>
-
-    <h3>D. Finalités</h3>
-    <p>Répondre aux sollicitations, organiser la vie du club, suivi administratif et communication.</p>
-
-    <h3>E. Transmission à des tiers</h3>
-    <p>Les données ne sont pas transmises à des tiers hors obligations légales.</p>
-
-    <h3>F. Hébergement</h3>
+    <h3>3.3 Informations sur l'hébergeur</h3>
     <p>
-      nom de l'hébergeur<br>
-        adresse<br>
-        Tél. : <br>
-        E-mail : contact@contact.fr<br>
-      Les données sont hébergées en France.
+      <strong>Environnement actuel :</strong> Phase de développement — Hébergement local (Laragon)<br>
+      <strong>Localisation :</strong> France<br>
+      <strong>Base de données :</strong> MySQL (stockage local sécurisé)
+    </p>
+    <p>
+      <strong>⚠️ Note :</strong> Lors de la mise en production, le site sera hébergé chez un prestataire professionnel 
+      français conforme RGPD (OVH, O2Switch, ou équivalent). Cette page sera mise à jour avec les coordonnées complètes.
+    </p>
+    <p>
+      Les données sont et seront hébergées en France, soumises à la législation française (RGPD et loi Informatique et Libertés).
     </p>
   </section>
 
@@ -82,46 +88,83 @@ require_once __DIR__ . '/../includes/tracker.php'; // Enregistre la visite
     <h2>ARTICLE 4 — Responsable de traitement & DPO</h2>
     <h3>A. Responsable</h3>
     <p>
-      ES Moulon (association loi 1901). Contact :
-      <a href="mailto:contact@esmoulon.fr">contact@esmoulon.fr</a>
-      ou courrier : ES Moulon — Rue de la Sente aux Loups, 18000 Bourges.
+      <strong>ES Moulon</strong> (association loi 1901)<br>
+      <strong>Adresse :</strong> Rue de la Sente aux Loups, 18000 Bourges<br>
+      <strong>SIRET :</strong> 395 367 451 00014<br>
+      <strong>Téléphone :</strong> 02 48 65 28 15<br>
+      <strong>E-mail :</strong> <a href="mailto:contact@esmoulon.fr">contact@esmoulon.fr</a><br>
+      <strong>Représentant légal :</strong> BARBOSA David (Président)
     </p>
 
     <h3>B. Engagements</h3>
-    <p>Protection des données, information en cas de rectification/suppression, sécurité des échanges (SSL), notification en cas d’incident majeur.</p>
+    <ul>
+      <li>Protection des données par des mesures techniques et organisationnelles appropriées ;</li>
+      <li>Chiffrement des communications (certificat SSL/TLS) ;</li>
+      <li>Traitement sécurisé des mots de passe (hachage bcrypt) ;</li>
+      <li>Protection contre les attaques CSRF (tokens de sécurité) ;</li>
+      <li>Information en cas de modification ou suppression de données ;</li>
+      <li>Notification en cas d'incident majeur (violation de données).</li>
+    </ul>
 
     <h3>C. Délégué à la protection des données (DPO)</h3>
-    <p>Le cas échéant, contact via le formulaire de contact du site ou l’adresse ci-dessus.</p>
+    <p>Le cas échéant, vous pouvez contacter le DPO via <a href="mailto:contact@esmoulon.fr">contact@esmoulon.fr</a> 
+    ou par courrier à l'adresse ci-dessus.</p>
   </section>
 
   <section>
     <h2>ARTICLE 5 — Droits des utilisateurs</h2>
+    <p>Conformément aux articles 15 à 22 du RGPD, vous disposez des droits suivants :</p>
     <ul>
-      <li>Droit d’accès, de rectification, d’effacement ;</li>
-      <li>Droit à la portabilité ;</li>
-      <li>Droit de limitation et d’opposition ;</li>
-      <li>Droit de définir le sort des données après décès ;</li>
-      <li>Droit d’introduire une réclamation auprès de la CNIL :
-        <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>.
-      </li>
+      <li><strong>Droit d'accès :</strong> obtenir la confirmation que vos données sont traitées et en obtenir une copie ;</li>
+      <li><strong>Droit de rectification :</strong> corriger vos données inexactes ou incomplètes ;</li>
+      <li><strong>Droit d'effacement (« droit à l'oubli ») :</strong> demander la suppression de vos données ;</li>
+      <li><strong>Droit à la portabilité :</strong> recevoir vos données dans un format structuré et lisible par machine ;</li>
+      <li><strong>Droit de limitation du traitement :</strong> suspendre le traitement de vos données ;</li>
+      <li><strong>Droit d'opposition :</strong> vous opposer au traitement de vos données pour des motifs légitimes ;</li>
+      <li><strong>Droit de définir le sort de vos données après votre décès</strong> (article 40-1 de la loi Informatique et Libertés) ;</li>
+      <li><strong>Droit d'introduire une réclamation :</strong> saisir la CNIL en cas de non-respect de vos droits 
+        (<a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>).</li>
     </ul>
-    <p>Exercer vos droits : <a href="mailto:contact@esmoulon.fr">contact@esmoulon.fr</a> (délai de réponse max. 30 jours).</p>
-  </section>
-
-  <section>
-    <h2>ARTICLE 6 — Cookies</h2>
-    <p>Le site peut utiliser des cookies techniques et de mesure d’audience. Le consentement, lorsqu’il est requis, est conservé 13 mois.</p>
-    <p>Vous pouvez configurer votre navigateur pour gérer/effacer les cookies :
-      <a href="https://support.google.com/accounts/answer/61416?hl=fr" target="_blank" rel="noopener">Chrome</a>,
-      <a href="https://support.mozilla.org/fr/kb/activer-desactiver-cookies-preferences" target="_blank" rel="noopener">Firefox</a>,
-      <a href="https://support.apple.com/fr-fr/guide/safari/sfri11471/mac" target="_blank" rel="noopener">Safari</a>,
-      <a href="https://support.microsoft.com/fr-fr/help/17442/windows-internet-explorer-delete-manage-cookies" target="_blank" rel="noopener">Internet Explorer</a>,
-      <a href="https://help.opera.com/en/latest/web-preferences/#cookies" target="_blank" rel="noopener">Opera</a>.
+    <p>
+      <strong>Exercer vos droits :</strong> Contactez-nous par e-mail à 
+      <a href="mailto:contact@esmoulon.fr">contact@esmoulon.fr</a> ou par courrier postal. 
+      Nous vous répondrons dans un délai maximum de <strong>30 jours</strong>.
     </p>
   </section>
 
   <section>
-    <h2>ARTICLE 7 — Modifications</h2>
-    <p>Cette politique peut être mise à jour afin de rester conforme au droit en vigueur. Dernière mise à jour : <strong>01/09/2025</strong> (à adapter).</p>
+    <h2>ARTICLE 6 — Cookies et traceurs</h2>
+    <p>
+      Le Site utilise un système de tracking interne (sans cookies tiers) pour analyser le trafic. 
+      Ce système collecte des données de navigation <strong>uniquement si vous acceptez les cookies</strong> 
+      via la bannière de consentement affichée lors de votre première visite.
+    </p>
+    <h3>Gestion de vos préférences cookies</h3>
+    <p>Vous pouvez à tout moment :</p>
+    <ul>
+      <li>Modifier votre choix via le lien <strong>"🍪 Gérer les cookies"</strong> en bas de page ;</li>
+      <li>Configurer votre navigateur pour refuser tous les cookies :</li>
+    </ul>
+    <ul style="list-style-type: circle; margin-left: 2em;">
+      <li><strong>Chrome :</strong> <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener">support.google.com/chrome/answer/95647</a></li>
+      <li><strong>Firefox :</strong> <a href="https://support.mozilla.org/fr/kb/activer-desactiver-cookies" target="_blank" rel="noopener">support.mozilla.org/fr/kb/activer-desactiver-cookies</a></li>
+      <li><strong>Safari :</strong> <a href="https://support.apple.com/fr-fr/guide/safari/sfri11471/mac" target="_blank" rel="noopener">support.apple.com/fr-fr/guide/safari/sfri11471</a></li>
+      <li><strong>Edge :</strong> <a href="https://support.microsoft.com/fr-fr/microsoft-edge/supprimer-les-cookies-dans-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener">support.microsoft.com</a></li>
+    </ul>
+    <p><strong>⚠️ Attention :</strong> Si vous refusez tous les cookies, certaines fonctionnalités du Site peuvent être limitées.</p>
   </section>
-</div>
+
+  <section>
+    <h2>ARTICLE 7 — Modifications de la politique</h2>
+    <p>
+      La présente politique de confidentialité peut être modifiée à tout moment pour refléter 
+      les évolutions légales ou les mises à jour du Site. Toute modification sera publiée sur cette page.
+    </p>
+    <p><strong>Dernière mise à jour :</strong> <?= date("d/m/Y") ?></p>
+  </section>
+
+    </div>
+  </section>
+</main>
+
+

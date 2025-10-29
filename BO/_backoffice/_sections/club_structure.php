@@ -168,20 +168,13 @@ $structures = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 $total  = count($structures);
 $actifs = count(array_filter($structures, fn($s) => (int)$s['is_active'] === 1));
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestion de l’Organigramme - ES Moulon</title>
-    <link rel="stylesheet" href="<?= asset('_back.css/club_structure.css') ?>">
-</head>
-<body>
+
 <div class="container">
     <div class="header">
         <div>
             <h1>🏗️ Organigramme du Club</h1>
-            <p style="color:#6b7280;margin-top:4px;">
-                <a href="dashboard.php" style="color:#1e40af;text-decoration:none;">← Retour au dashboard</a>
+            <p style="color: #6b7280; margin-top: 4px;">
+                <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
             </p>
         </div>
         <button class="btn btn-primary" onclick="document.getElementById('formSection').style.display='block'; window.scrollTo({top:0, behavior:'smooth'});">

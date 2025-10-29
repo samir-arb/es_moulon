@@ -21,6 +21,11 @@ if (!in_array($_SESSION['role'], $allowed_roles)) {
 $user_role = $_SESSION['role'];
 $filter_team = isset($_GET['team']) && is_numeric($_GET['team']) ? (int)$_GET['team'] : 0;
 
+// 🛡️ GÉNÉRATION TOKEN CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // --- SUPPRESSION ---
 if (isset($_GET['delete']) && is_numeric($_GET['delete']) && $user_role === 'ROLE_ADMIN') {
     $id = (int)$_GET['delete'];
@@ -39,6 +44,14 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete']) && $user_role === 'ROL
 
 // --- AJOUT / MODIFICATION ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_player'])) {
+    
+    // 🛡️ VÉRIFICATION TOKEN CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['flash']['danger'] = "❌ Token CSRF invalide. Tentative d'attaque détectée !";
+        header('Location: /es_moulon/BO/admin.php?section=joueurs' . ($filter_team ? '&team=' . $filter_team : ''));
+        exit;
+    }
+    
     $id_link = isset($_POST['id_user_club_function']) ? (int)$_POST['id_user_club_function'] : 0;
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
@@ -162,31 +175,21 @@ if ($teams_result) {
         $teams_list[] = $row;
     }
 }
-
 // Postes dispo
 $positions = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
 ?>
 
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Joueurs et Licenciés - ES Moulon</title>
-    <link rel="stylesheet" href="<?= asset('_back.css/joueurs.css') ?>">
-</head>
-
-<body>
     <div class="container">
         <div class="header">
             <div>
                 <h1>👥 Gestion des Joueurs et Licenciés</h1>
-                <p><a href="dashboard.php">← Retour au dashboard</a></p>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
+                </p>
             </div>
             <?php if (!$edit_player): ?>
                 <button class="btn btn-primary" onclick="document.getElementById('formSection').style.display='block'; window.scrollTo(0,0);">
-                    ➕ Nouveaux joueurs
+                    ➕ Nouveau joueur
                 </button>
             <?php endif; ?>
         </div>
@@ -205,6 +208,10 @@ $positions = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant'];
             <h2><?= $edit_player ? '✏️ Modifier le joueur' : '➕ Nouveau joueur' ?></h2>
 
             <form method="POST" action="/es_moulon/BO/admin.php?section=joueurs">
+                
+                <!-- 🛡️ CHAMP CSRF CACHÉ -->
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                
                 <?php if ($edit_player): ?>
                     <input type="hidden" name="id_user_club_function" value="<?= $edit_player['id_user_club_function'] ?>">
                 <?php endif; ?>

@@ -2,12 +2,22 @@
 // includes/tracker.php
 // Ce fichier enregistre les visites du site public
 // À inclure en haut de chaque page publique : require_once 'includes/tracker.php';
+// ⚠️ RGPD : Ne collecte des données QUE si l'utilisateur a consenti
 
 // Connexion à la base de données
 require_once __DIR__ . '/config.php';
 
 // Fonction pour enregistrer une visite
 function enregistrerVisite($pdo) {
+    // ===================================================
+    // ✅ RGPD : VÉRIFIER LE CONSENTEMENT AVANT DE TRACKER
+    // ===================================================
+    // Ne pas tracker si l'utilisateur n'a pas accepté les cookies
+    if (!isset($_COOKIE['cookie_consent']) || $_COOKIE['cookie_consent'] !== 'accepted') {
+        // L'utilisateur n'a pas accepté → On ne collecte RIEN
+        return false;
+    }
+    
     try {
         // Récupérer les informations du visiteur
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'inconnu';
@@ -105,5 +115,5 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Enregistrer la visite
+// ✅ Enregistrer la visite (la fonction vérifie le consentement RGPD)
 enregistrerVisite($pdo);

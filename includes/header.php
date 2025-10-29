@@ -15,11 +15,15 @@ $pageClass = $pageClass ?? '';
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 
   <link rel="stylesheet" href="<?= asset('_front.css/styles.css') ?>">
-  <!-- si tu gardes generics.css -->
   <link rel="stylesheet" href="<?= asset('_front.css/generics.css') ?>">
+  <link rel="stylesheet" href="<?= asset('_front.css/formulaires.css') ?>">
+  <link rel="stylesheet" href="<?= asset('_front.css/actualites.css') ?>">
+  <link rel="stylesheet" href="<?= asset('_front.css/cookie-consent.css') ?>">
 </head>
 
 <body class="<?= htmlspecialchars($pageClass) ?>">

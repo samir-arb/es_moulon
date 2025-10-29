@@ -78,21 +78,14 @@ $stats = [
     'rejetes'    => count(array_filter($contacts, function($c) { return $c['status'] === 'rejeté'; }))
 ];
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= asset('_back.css/contacts.css') ?>">
-    <title>Gestion des Contacts - ES Moulon</title>
-</head>
-<body>
+
     <div class="container">
         <div class="header">
             <h1>📬 Messages de contact</h1>
             <p style="color: #6b7280; margin-top: 4px;">
-                <a href="dashboard.php" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
+                <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
             </p>
+        
         </div>
 
         <?php

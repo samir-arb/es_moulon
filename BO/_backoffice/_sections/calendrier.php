@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_match'])) {
                     match_type = ? 
                     WHERE id_match = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('iisssiisi', $id_home_team, $id_away_team, $match_date, $location, $home_score, $away_score, $phase, $match_type, $id);
+            $stmt->bind_param('iissiissi', $id_home_team, $id_away_team, $match_date, $location, $home_score, $away_score, $phase, $match_type, $id);
             $message = "✅ Match modifié avec succès";
         } else {
             // AJOUT
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_match'])) {
             $sql = "INSERT INTO matches (id_home_team, id_away_team, match_date, location, home_score, away_score, phase, match_type, id_season) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param('iisssiisi', $id_home_team, $id_away_team, $match_date, $location, $home_score, $away_score, $phase, $match_type, $id_season);
+            $stmt->bind_param('iissiissi', $id_home_team, $id_away_team, $match_date, $location, $home_score, $away_score, $phase, $match_type, $id_season);
             $message = "✅ Match ajouté avec succès";
         }
 
@@ -158,13 +158,7 @@ foreach ($matchs as $m) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="fr">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendrier & Résultats - ES Moulon</title>
     <style>
         * {
             margin: 0;
@@ -635,15 +629,13 @@ foreach ($matchs as $m) {
             }
         }
     </style>
-</head>
 
-<body>
     <div class="container">
         <div class="header">
             <div>
                 <h1>📅 Calendrier & Résultats</h1>
-                <p>
-                    <a href="/es_moulon/BO/admin.php?section=dashboard">← Retour au tableau de bord</a>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
                 </p>
             </div>
             <?php if (!$edit): ?>
@@ -913,11 +905,16 @@ foreach ($matchs as $m) {
                                 <div class="match-details">
                                     <?php if (!is_null($score_club)): ?>
                                         <div class="match-score <?= $score_class ?>">
-                                            <?= $score_club ?> - <?= $score_adv ?>
+                                            <?php if ($is_home_club): ?>
+                                                <?= $score_club ?> - <?= $score_adv ?>
+                                            <?php else: ?>
+                                                <?= $score_adv ?> - <?= $score_club ?>
+                                            <?php endif; ?>
                                         </div>
                                     <?php else: ?>
                                         <div class="match-score upcoming">À venir</div>
                                     <?php endif; ?>
+
 
                                     <div class="match-location">📍 <?= htmlspecialchars($m['location']) ?></div>
 
@@ -965,6 +962,7 @@ foreach ($matchs as $m) {
             }
         }
     </script>
+
 </body>
 
 </html>

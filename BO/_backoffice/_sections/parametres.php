@@ -107,10 +107,12 @@ if ($_SESSION['role'] !== 'ROLE_ADMIN') {
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚙️ Paramètres</h1>
-            <p style="color: #6b7280; margin-top: 4px;">
-                <a href="dashboard.php" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
-            </p>
+            <div>
+                <h1>⚙️ Paramètres</h1>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
+                </p>
+            </div>
         </div>
 
         <div class="card">

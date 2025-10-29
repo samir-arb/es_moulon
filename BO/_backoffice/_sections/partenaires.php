@@ -17,10 +17,23 @@ if (!in_array($_SESSION['role'], $allowed_roles)) {
 
 $user_role = $_SESSION['role'];
 
+// 🛡️ GÉNÉRATION TOKEN CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // ========================================
 // GESTION IMAGE FOOTER
 // ========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_footer_image'])) {
+    
+    // 🛡️ VÉRIFICATION TOKEN CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['flash']['danger'] = "❌ Token CSRF invalide. Tentative d'attaque détectée !";
+        header("Location: {$adminUrl}?section=partenaires");
+        exit;
+    }
+    
     $footer_media_id = isset($_POST['footer_media_id']) && !empty($_POST['footer_media_id']) ? (int)$_POST['footer_media_id'] : null;
     
     try {
@@ -61,6 +74,14 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
 
 // AJOUT / MODIFICATION
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_partner'])) {
+    
+    // 🛡️ VÉRIFICATION TOKEN CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['flash']['danger'] = "❌ Token CSRF invalide. Tentative d'attaque détectée !";
+        header("Location: {$adminUrl}?section=partenaires");
+        exit;
+    }
+    
     $id = isset($_POST['id_partner']) && is_numeric($_POST['id_partner']) ? (int)$_POST['id_partner'] : 0;
     $name = isset($_POST['name']) ? trim($_POST['name']) : '';
     $website_url = isset($_POST['website_url']) ? trim($_POST['website_url']) : '';
@@ -145,61 +166,12 @@ $current_footer_image = $footer_image_result ? $footer_image_result->fetch_assoc
 ?>
 
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestion Partenaires</title>
-    <link rel="stylesheet" href="<?= asset('_back.css/news.css') ?>">
-    <style>
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .form-group-compact {
-            margin-bottom: 15px;
-        }
-        .form-group-compact label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #374151;
-            font-size: 0.9rem;
-        }
-        .form-group-compact input,
-        .form-group-compact select,
-        .form-group-compact textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-        .form-group-compact textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-        .form-group-compact small {
-            display: block;
-            color: #6b7280;
-            font-size: 0.8rem;
-            margin-top: 4px;
-        }
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
     <div class="container">
         <div class="header">
             <div>
                 <h1>🤝 Gestion des Partenaires</h1>
-                <p style="color:#6b7280;margin-top:4px;">
-                    <a href="<?= $adminUrl ?>?section=dashboard" style="color:#1e40af;text-decoration:none;">← Retour</a>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
                 </p>
             </div>
             <button class="btn btn-primary" onclick="toggleForm()">➕ Nouveau partenaire</button>
@@ -246,6 +218,9 @@ $current_footer_image = $footer_image_result ? $footer_image_result->fetch_assoc
 
             <form method="POST" action="">
                 <input type="hidden" name="save_footer_image" value="1">
+                
+                <!-- 🛡️ CHAMP CSRF CACHÉ -->
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 
                 <div class="form-group-compact">
                     <label for="footer_media_id">Sélectionner une image</label>
@@ -279,6 +254,10 @@ $current_footer_image = $footer_image_result ? $footer_image_result->fetch_assoc
 
             <form method="POST" action="">
                 <input type="hidden" name="save_partner" value="1">
+                
+                <!-- 🛡️ CHAMP CSRF CACHÉ -->
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                
                 <?php if ($edit_partner): ?>
                     <input type="hidden" name="id_partner" value="<?= (int)$edit_partner['id_partner'] ?>">
                 <?php endif; ?>

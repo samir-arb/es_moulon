@@ -3,6 +3,79 @@ require_once __DIR__ . '/../includes/tracker.php';
 require_once __DIR__ . '/../includes/config.php';
 
 // ==============================
+// 📢 AFFICHAGE MESSAGES FLASH
+// ==============================
+if (isset($_SESSION['flash'])): ?>
+    <div style="position:fixed;top:20px;right:20px;z-index:9999;max-width:400px;">
+        <?php foreach ($_SESSION['flash'] as $type => $message): ?>
+            <div style="
+                background: <?= $type === 'error' ? '#fee2e2' : '#d1fae5' ?>;
+                color: <?= $type === 'error' ? '#991b1b' : '#065f46' ?>;
+                border: 2px solid <?= $type === 'error' ? '#ef4444' : '#10b981' ?>;
+                padding: 15px 20px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                font-weight: 600;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                animation: slideIn 0.3s ease-out;
+            ">
+                <?= htmlspecialchars($message) ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('[style*="position:fixed"]').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.5s';
+                setTimeout(() => el.remove(), 500);
+            });
+        }, 5000);
+    </script>
+    <?php unset($_SESSION['flash']); ?>
+<?php endif; ?>
+
+<?php
+// ==============================
+// 0️⃣ CONFIGURATION HERO (Bannière d'accueil)
+// ==============================
+$hero_title = 'Bienvenue à';
+$hero_subtitle = "L'ES Moulon";
+$hero_lead = "Depuis 1940, notre club s'engage à développer le football local et à promouvoir les valeurs du sport.";
+$hero_image = asset('img/photo_accueil.jpg'); // Image par défaut
+
+try {
+    $stmt = $pdo->query("
+        SELECT s.hero_title, s.hero_subtitle, s.hero_lead, m.file_path 
+        FROM site_settings s
+        LEFT JOIN medias m ON s.id_hero_media = m.id_media
+        LIMIT 1
+    ");
+    $hero_config = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($hero_config) {
+        $hero_title = $hero_config['hero_title'] ?? $hero_title;
+        $hero_subtitle = $hero_config['hero_subtitle'] ?? $hero_subtitle;
+        $hero_lead = $hero_config['hero_lead'] ?? $hero_lead;
+        
+        // Si une image est configurée, construire le bon chemin
+        if (!empty($hero_config['file_path'])) {
+            // Le file_path dans medias contient déjà "uploads/..." donc on utilise asset() directement
+            $hero_image = asset($hero_config['file_path']);
+        }
+    }
+} catch (PDOException $e) {
+    error_log('Erreur chargement Hero : ' . $e->getMessage());
+    // On garde les valeurs par défaut
+}
+
+// ==============================
 // 1️⃣ DERNIER RÉSULTAT (matchs où ES MOULON a joué)
 // ==============================
 try {
@@ -101,14 +174,18 @@ $title = "Accueil — ES Moulon";
 
 <!-- ========================= HERO ========================= -->
 
-
-
 <section class="home-hero" aria-label="Présentation du club">
-    <div class="home-hero__bg" style="--hero:url('<?= asset('img/photo_accueil.jpg') ?>');"></div>
+    <!-- Image de fond dynamique depuis site_settings -->
+    <div class="home-hero__bg" style="--hero:url('<?= htmlspecialchars($hero_image) ?>');"></div>
+    
     <div class="home-hero__content container">
-        <p class="home-hero__eyebrow">Bienvenue à</p>
-        <h1 class="home-hero__title">L'ES <span>Moulon</span></h1>
-        <p class="home-hero__lead">Depuis 1940, notre club s'engage à développer le football local et à promouvoir les valeurs du sport.</p>
+        <!-- Titre dynamique depuis site_settings -->
+        <p class="home-hero__eyebrow"><?= htmlspecialchars($hero_title) ?></p>
+        <h1 class="home-hero__title"><?= htmlspecialchars($hero_subtitle) ?></h1>
+        
+        <!-- Texte d'introduction dynamique -->
+        <p class="home-hero__lead"><?= htmlspecialchars($hero_lead) ?></p>
+        
         <div class="home-hero__cta">
             <a href="<?= url('Rejoignez_nous/nous_contactez') ?>" class="btn btn-gradient">Rejoignez-nous</a>
         </div>
@@ -116,7 +193,7 @@ $title = "Accueil — ES Moulon";
 </section>
 
 
-<!-- ========================= CARTES RÉSULTATS/MATCHS ========================= -->
+<!-- ============== CARTES RÉSULTATS/MATCHS ================== -->
 
 <section class="cards-grid">
 
@@ -479,7 +556,7 @@ $title = "Accueil — ES Moulon";
             <div class="partners__rail">
                 <?php if (!empty($partenaires)): ?>
                     <?php
-                    // 🔄 TRIPLICATION pour effet défilement infini
+                    //  TRIPLICATION pour effet défilement infini
                     $partenaires_tripled = array_merge($partenaires, $partenaires, $partenaires);
                     foreach ($partenaires_tripled as $p):
                     ?>
@@ -523,7 +600,10 @@ $title = "Accueil — ES Moulon";
     </div>
 </section>
 
+
 <script>
+    //caroussel partenaires pages accueil
+
     (function() {
         'use strict';
 

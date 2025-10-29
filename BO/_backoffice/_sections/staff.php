@@ -15,6 +15,11 @@ if (!in_array($_SESSION['role'], $allowed_roles)) {
 }
 $user_role = $_SESSION['role'];
 
+// 🛡️ GÉNÉRATION TOKEN CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 /* --------- Suppression --------- */
 if (isset($_GET['delete']) && ctype_digit($_GET['delete']) && $user_role === 'ROLE_ADMIN') {
     $id = (int)$_GET['delete'];
@@ -28,6 +33,14 @@ if (isset($_GET['delete']) && ctype_digit($_GET['delete']) && $user_role === 'RO
 
 /* --------- Ajout / Modification --------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_staff'])) {
+    
+    // 🛡️ VÉRIFICATION TOKEN CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['flash']['danger'] = "❌ Token CSRF invalide. Tentative d'attaque détectée !";
+        header('Location: /es_moulon/BO/admin.php?section=staff');
+        exit;
+    }
+    
     $id_ucf     = isset($_POST['id_user_club_function']) ? (int)$_POST['id_user_club_function'] : 0;
     $first_name = trim($_POST['first_name']);
     $name       = trim($_POST['name']);
@@ -151,7 +164,9 @@ if ($res) while ($m = $res->fetch_assoc()) $medias_list[] = $m;
   <div class="header">
     <div>
       <h1>👔 Staff & Administration</h1>
-      <p><a href="/es_moulon/BO/admin.php?section=dashboard">← Retour au dashboard</a></p>
+      <p style="color: #6b7280; margin-top: 4px;">
+        <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
+      </p>
     </div>
     <?php if (!$edit_staff): ?>
       <button class="btn btn-primary" onclick="document.getElementById('formSection').style.display='block'; window.scrollTo(0,0);">➕ Ajouter un membre</button>
@@ -167,6 +182,10 @@ if ($res) while ($m = $res->fetch_assoc()) $medias_list[] = $m;
     <h2><?= $edit_staff ? '✏️ Modifier le membre' : '➕ Nouveau membre' ?></h2>
 
     <form method="POST" action="/es_moulon/BO/admin.php?section=staff">
+      
+      <!-- 🛡️ CHAMP CSRF CACHÉ -->
+      <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+      
       <?php if ($edit_staff): ?>
         <input type="hidden" name="id_user_club_function" value="<?= (int)$edit_staff['id_user_club_function'] ?>">
       <?php endif; ?>

@@ -3,8 +3,8 @@
 Seuls les administrateurs accèdent aux statistiques avancées, calculées dynamiquement à partir de la table des visites.
 Chaque sous-bloc (évolution, top pages, moyenne, navigateurs, etc.) est encapsulé dans un try/catch global pour éviter tout plantage du tableau de bord en cas d’erreur SQL.
 Le code est compatible avec MySQL strict (only_full_group_by) et respecte une approche MVC : le calcul se fait dans dashboard_data.php et l’affichage dans dashboard.php." -->
-
 <?php
+
 /**
  * _backoffice/_core/dashboard_data.php
  * 
@@ -21,13 +21,16 @@ global $pdo, $user_role;
 // ============================================================
 // 🔄 RAFRAÎCHIR LE CACHE MANUELLEMENT (admin uniquement)
 // ============================================================
-if (isset($_POST['refresh_cache']) && $user_role === 'ROLE_ADMIN') {
+if (isset($_GET['refresh']) && $_GET['refresh'] == '1' && $user_role === 'ROLE_ADMIN') {
     $cacheFile = __DIR__ . '/dashboard_cache.json';
     if (file_exists($cacheFile)) {
         unlink($cacheFile);
+        $_SESSION['flash']['success'] = "✅ Les statistiques ont été rafraîchies avec succès !";
+    } else {
+        $_SESSION['flash']['success'] = "✅ Les statistiques sont à jour !";
     }
     // Recharge la page pour recalculer les stats
-    header("Location: " . $_SERVER['REQUEST_URI']);
+    header("Location: admin.php?section=dashboard");
     exit;
 }
 

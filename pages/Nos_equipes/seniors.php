@@ -120,13 +120,6 @@ $responsable_result = $conn->query($responsable_sql);
 $responsable = $responsable_result ? $responsable_result->fetch_assoc() : null;
 ?>
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>École de Foot - ES Moulon</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -147,7 +140,393 @@ $responsable = $responsable_result ? $responsable_result->fetch_assoc() : null;
       --white: #ffffff;
     }
 
-    /* SECTION RESPONSABLE */
+    /* ============================================
+       OPTION 1 : DESIGN MODERNE AVEC GRADIENT
+       ============================================ */
+    .responsable-header.option1 {
+      background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+      padding: 80px 20px;
+      position: relative;
+      overflow: hidden;
+      border: none;
+    }
+
+    .responsable-header.option1::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .responsable-header.option1 .responsable-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .responsable-header.option1 .responsable-photo,
+    .responsable-header.option1 .responsable-photo-placeholder {
+      border: 6px solid #4CAF50;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3),
+                  0 0 0 12px rgba(76, 175, 80, 0.2);
+    }
+
+    .responsable-header.option1 .responsable-text {
+      color: #ffffff;
+    }
+
+    .responsable-header.option1 .responsable-quote {
+      color: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.08);
+      padding: 20px 25px;
+      border-left: 4px solid #4CAF50;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+
+    .responsable-header.option1 .responsable-signature {
+      color: #ffffff;
+      padding: 15px 25px;
+      background: rgba(76, 175, 80, 0.2);
+      border-radius: 8px;
+      border-left: 4px solid #4CAF50;
+    }
+
+    .responsable-header.option1 .responsable-signature strong {
+      color: #4CAF50;
+      font-size: 1.1em;
+    }
+
+    /* ============================================
+       OPTION 2 : DESIGN CARTE ÉLÉGANTE
+       ============================================ */
+    .responsable-header.option2 {
+      background: #f8f9fa;
+      padding: 80px 20px;
+      border: none;
+    }
+
+    .responsable-header.option2 .responsable-inner {
+      background: white;
+      padding: 50px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .responsable-header.option2 .responsable-inner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 100%;
+      background: linear-gradient(180deg, #4CAF50 0%, #2d5a3d 100%);
+    }
+
+    .responsable-header.option2 .responsable-photo,
+    .responsable-header.option2 .responsable-photo-placeholder {
+      border: 8px solid #f0f0f0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .responsable-header.option2 .responsable-photo-wrapper {
+      position: relative;
+    }
+
+    .responsable-header.option2 .responsable-photo-wrapper::after {
+      content: '⚽';
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 50px;
+      height: 50px;
+      background: #4CAF50;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      border: 4px solid white;
+    }
+
+    .responsable-header.option2 .responsable-quote {
+      color: #555;
+      background: #f8f9fa;
+      padding: 25px 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      position: relative;
+      border-left: 5px solid #4CAF50;
+    }
+
+    .responsable-header.option2 .responsable-quote:first-of-type::before {
+      content: '"';
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      font-size: 4em;
+      color: #4CAF50;
+      opacity: 0.3;
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
+
+    .responsable-header.option2 .responsable-signature {
+      text-align: right;
+      padding: 20px 30px;
+      background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
+      border-radius: 12px;
+      border: 2px solid #e0e0e0;
+    }
+
+    .responsable-header.option2 .responsable-signature strong {
+      color: #1a472a;
+      font-size: 1.15em;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    /* ============================================
+       OPTION 3 : DESIGN HÉRO MODERNE
+       ============================================ */
+    .responsable-header.option3 {
+      background: #ffffff;
+      padding: 0;
+      border: none;
+      position: relative;
+    }
+
+    .responsable-header.option3::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: linear-gradient(135deg, #1a472a 0%, #4CAF50 100%);
+      clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
+    }
+
+    .responsable-header.option3 .responsable-inner {
+      position: relative;
+      z-index: 1;
+      padding: 60px 20px 80px;
+      max-width: 1200px;
+      margin: 120px auto 0;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      flex-direction: column;
+      text-align: center;
+      gap: 30px;
+    }
+
+    .responsable-header.option3 .responsable-photo,
+    .responsable-header.option3 .responsable-photo-placeholder {
+      width: 200px;
+      height: 200px;
+      border: 8px solid white;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      margin-top: -80px;
+    }
+
+    .responsable-header.option3 .responsable-photo-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .responsable-header.option3 .responsable-photo-wrapper::after {
+      content: 'RESPONSABLE';
+      position: absolute;
+      top: -100px;
+      background: #4CAF50;
+      color: white;
+      padding: 8px 25px;
+      border-radius: 20px;
+      font-size: 0.75em;
+      font-weight: 700;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .responsable-header.option3 .responsable-text {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .responsable-header.option3 .responsable-quote {
+      color: #555;
+      background: #f8f9fa;
+      padding: 30px 40px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      border-left: 6px solid #4CAF50;
+      text-align: left;
+    }
+
+    .responsable-header.option3 .responsable-signature {
+      text-align: center;
+      padding: 25px;
+      background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+      border-radius: 15px;
+      border: 2px solid #e0e0e0;
+      margin-top: 30px;
+    }
+
+    .responsable-header.option3 .responsable-signature strong {
+      color: #1a472a;
+      font-size: 1.3em;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* ============================================
+       OPTION 4 : DESIGN PRO CLUB DE FOOT ⭐⭐⭐
+       ============================================ */
+    .responsable-header.option4 {
+      background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+      padding: 80px 20px 60px;
+      border: none;
+      position: relative;
+    }
+
+    .responsable-header.option4::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #009639 0%, #00b34a 50%, #009639 100%);
+    }
+
+    .responsable-header.option4 .responsable-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 50px;
+      background: white;
+      padding: 50px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      border-left: 6px solid #009639;
+    }
+
+    .responsable-header.option4 .responsable-photo-wrapper {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .responsable-header.option4 .responsable-photo,
+    .responsable-header.option4 .responsable-photo-placeholder {
+      width: 200px;
+      height: 200px;
+      border: 6px solid white;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15),
+                  0 0 0 2px #009639;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .responsable-header.option4 .responsable-photo-placeholder {
+      background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5em;
+      color: #009639;
+    }
+
+    .responsable-header.option4 .responsable-text {
+      flex: 1;
+    }
+
+    .responsable-header.option4 .responsable-quote {
+      color: #444;
+      font-size: 1em;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      padding-left: 20px;
+      border-left: 3px solid #009639;
+      font-style: normal;
+    }
+
+    .responsable-header.option4 .responsable-quote:first-of-type {
+      font-size: 1.05em;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .responsable-header.option4 .responsable-signature {
+      margin-top: 30px;
+      padding: 20px 25px;
+      background: linear-gradient(135deg, #f0f9f4 0%, #ffffff 100%);
+      border-radius: 10px;
+      border-left: 4px solid #009639;
+      text-align: left;
+    }
+
+    .responsable-header.option4 .responsable-signature strong {
+      color: #009639;
+      font-size: 1.1em;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .responsable-header.option4 .responsable-signature small {
+      color: #666;
+      font-size: 0.9em;
+      font-style: italic;
+    }
+
+    @media (max-width: 1024px) {
+      .responsable-header.option4 .responsable-inner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 40px 30px;
+      }
+
+      .responsable-header.option4 .responsable-quote {
+        border-left: none;
+        border-top: 3px solid #009639;
+        padding-left: 0;
+        padding-top: 15px;
+      }
+
+      .responsable-header.option4 .responsable-signature {
+        text-align: center;
+        border-left: none;
+        border-top: 4px solid #009639;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .responsable-header.option4 .responsable-inner {
+        padding: 30px 20px;
+      }
+
+      .responsable-header.option4 .responsable-photo,
+      .responsable-header.option4 .responsable-photo-placeholder {
+        width: 160px;
+        height: 160px;
+      }
+    }
+
+    /* SECTION RESPONSABLE - BASE */
     .responsable-header {
       background: #fff;
       border-top: 6px solid var(--green-primary);
@@ -268,10 +647,11 @@ $responsable = $responsable_result ? $responsable_result->fetch_assoc() : null;
     /* INFO ÉQUIPE */
     .team-info {
       padding: 20px 0;
+
     }
 
     .team-category {
-      font-size: 1.1em;
+      font-size: 1.3em;
       font-weight: 600;
       color: #666;
       margin-bottom: 8px;
@@ -280,11 +660,17 @@ $responsable = $responsable_result ? $responsable_result->fetch_assoc() : null;
     }
 
     .team-name {
-      font-size: 2.5em;
+      font-size: 2.2em;
       font-weight: 800;
       color: var(--green-primary);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       text-transform: uppercase;
+      letter-spacing: 2px;
+      line-height: 1.2;
+      white-space: nowrap;    
+      word-break: keep-all;     
+      overflow-wrap: normal;
+      
     }
 
     .team-level {
@@ -423,11 +809,10 @@ $responsable = $responsable_result ? $responsable_result->fetch_assoc() : null;
       margin-bottom: 20px;
     }
   </style>
-</head>
 
-<body>
   <!-- HEADER RESPONSABLE -->
-  <section class="responsable-header">
+  <!-- 🎨 Design Pro Club de Foot (Option 4) -->
+  <section class="responsable-header option4">
     <div class="responsable-inner">
       <div class="responsable-photo-wrapper">
         <?php if ($responsable && !empty($responsable['photo'])): ?>
@@ -439,23 +824,27 @@ $responsable = $responsable_result ? $responsable_result->fetch_assoc() : null;
 
       <div class="responsable-text">
         <p class="responsable-quote">
-          "À l'ES Moulon, l'école de foot occupe une place centrale dans notre projet sportif et éducatif.
-          Notre objectif est clair : offrir à chaque enfant un cadre structuré, bienveillant et stimulant
-          pour découvrir le football tout en s'amusant.
-          Encadrés par une équipe d'éducateurs passionnés, nos jeunes licenciés bénéficient de 1 à 2 séances
-          d'entraînement par semaine, complétées par des plateaux le week-end.
-          Ces moments permettent d'acquérir les bases essentielles du jeu à travers des matchs adaptés à leur âge."
+          "La section séniors de l’ES Moulon est bien plus qu’un groupe d’équipes : c’est une famille, un moteur, 
+          et un exemple pour l’ensemble du club.
+          Chaque week-end, nos joueurs portent fièrement les couleurs de l’ESM sur les terrains de la région et du département. 
+          Nous nous appuyons sur un effectif large, composé de joueurs formés au club, de cadres expérimentés et de jeunes en pleine progression. 
+          Nous veillons aussi à intégrer progressivement les jeunes issus du club pour assurer une vraie continuité dans le projet sportif." 
         </p>
 
         <p class="responsable-quote">
-          "Dès la catégorie U8/U9, l'approche devient plus approfondie : on y découvre les premières exigences
-          techniques et tactiques, tout en renforçant les valeurs humaines indispensables à la pratique du football —
-          respect, entraide, engagement. Plus qu'une école de football, c'est une école de la vie que nous proposons aux enfants."
+          "L’ambition est claire : proposer un football engagé, collectif, exigeant — mais toujours dans le respect de nos valeurs. 
+          Le respect, l’exemplarité, l’état d’esprit et la rigueur sont au cœur de notre projet sportif."
+        </p>
+
+        <p class="responsable-quote">          
+          "Je tiens à remercier l’ensemble des joueurs, éducateurs, dirigeants et bénévoles qui œuvrent chaque jour pour faire vivre cette dynamique.
+          L’avenir de notre club passe aussi par l’engagement de tous. 
+          Continuons à avancer, ensemble."
         </p>
 
         <p class="responsable-signature">
           <strong><?= $responsable ? htmlspecialchars($responsable['first_name'] . ' ' . strtoupper($responsable['name'])) : 'Responsable à définir' ?></strong>,
-          <?= $responsable['role_title'] ?? 'Responsable école de foot' ?>
+          <?= $responsable['role_title'] ?? 'Président' ?>
         </p>
       </div>
     </div>
@@ -534,5 +923,3 @@ $responsable = $responsable_result ? $responsable_result->fetch_assoc() : null;
     <?php endif; ?>
   </div>
 
-</body>
-</html>

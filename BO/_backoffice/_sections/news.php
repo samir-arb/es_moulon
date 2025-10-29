@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../../includes/config.php';
 $adminUrl = $_SERVER['PHP_SELF'] ?? '/es_moulon/BO/admin.php';
 
 // ======================
-// 🔐 Sécurité d'accès
+//  Sécurité d'accès
 // ======================
 if (!isset($_SESSION['user_id']) || !$_SESSION['logged_in']) {
     $_SESSION['flash']['warning'] = "Vous devez être connecté.";
@@ -24,7 +24,14 @@ $user_id = $_SESSION['user_id'];
 $user_role = $_SESSION['role'];
 
 // ======================
-// 🗑️ Suppression d'image
+//  🛡️ GÉNÉRATION TOKEN CSRF
+// ======================
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// ======================
+//  Suppression d'image
 // ======================
 if (isset($_GET['remove_media']) && isset($_GET['edit'])) {
     $article_id = (int)$_GET['edit'];
@@ -38,7 +45,7 @@ if (isset($_GET['remove_media']) && isset($_GET['edit'])) {
 }
 
 // ======================
-// 🗑️ Suppression
+//  Suppression
 // ======================
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $id = (int)$_GET['delete'];
@@ -58,9 +65,17 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
 }
 
 // ======================
-// 💾 Ajout / Modification
+//  Ajout / Modification
 // ======================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_article'])) {
+    
+    // 🛡️ VÉRIFICATION TOKEN CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['flash']['danger'] = "❌ Token CSRF invalide. Tentative d'attaque détectée !";
+        header("Location: {$adminUrl}?section=news");
+        exit;
+    }
+    
     $id = isset($_POST['id_new']) ? (int)$_POST['id_new'] : 0;
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
@@ -72,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_article'])) {
         $_SESSION['flash']['danger'] = "Le titre est obligatoire.";
     } else {
         if ($id > 0) {
-            // 🔁 MODIFICATION
+            //  MODIFICATION
             $stmt = $conn->prepare("
                 UPDATE news 
                 SET title = ?, content = ?, status = ?, id_media = ?, published_at = ?, updated_at = NOW()
@@ -81,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_article'])) {
             $stmt->bind_param('ssiisi', $title, $content, $status, $id_media, $published_at, $id);
             $msg = "Article mis à jour avec succès.";
         } else {
-            // 🆕 AJOUT
+            //  AJOUT
             $stmt = $conn->prepare("
                 INSERT INTO news (title, content, status, id_user, id_media, published_at)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -100,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_article'])) {
 }
 
 // ======================
-// ✏️ Récupération pour modification
+//  Récupération pour modification
 // ======================
 $edit_article = null;
 if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
@@ -112,7 +127,7 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 }
 
 // ======================
-// 📋 Liste des articles
+//  Liste des articles
 // ======================
 $result = $conn->query("
     SELECT n.*, u.first_name, u.name 
@@ -123,7 +138,7 @@ $result = $conn->query("
 $articles = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
 // ======================
-// 📊 Statistiques
+//  Statistiques
 // ======================
 $total = count($articles);
 $publies = count(array_filter($articles, fn($a) => $a['status'] == 1));
@@ -131,11 +146,13 @@ $brouillons = $total - $publies;
 $dernier = $articles[0]['title'] ?? 'Aucun article';
 
 // ======================
-// 📂 Médias disponibles
+//  Médias disponibles
 // ======================
 $result = $conn->query("SELECT id_media, file_name, file_path, description FROM medias ORDER BY uploaded_at DESC");
 $available_medias = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 ?>
+
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -151,8 +168,8 @@ $available_medias = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
         <div class="header">
             <div>
                 <h1>📰 Gestion des Actualités</h1>
-                <p style="color:#6b7280;margin-top:4px;">
-                    <a href="<?= htmlspecialchars($adminUrl) ?>?section=dashboard" style="color:#1e40af;text-decoration:none;">← Retour au tableau de bord</a>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
                 </p>
             </div>
             <button class="btn btn-primary" onclick="toggleForm()">➕ Nouvel article</button>
@@ -166,7 +183,7 @@ $available_medias = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
             unset($_SESSION['flash']); ?>
         <?php endif; ?>
 
-        <!-- 📊 STATISTIQUES -->
+        <!--  STATISTIQUES -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value"><?= $total ?></div>
@@ -186,7 +203,7 @@ $available_medias = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
             </div>
         </div>
 
-        <!-- ✏️ FORMULAIRE -->
+        <!--  FORMULAIRE -->
         <div class="card" id="formSection" style="<?= $edit_article ? '' : 'display:none;' ?>">
             <h2><?= $edit_article ? '✏️ Modifier un article' : '➕ Nouvel article' ?></h2>
 
@@ -197,6 +214,10 @@ $available_medias = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
             <?php endif; ?>
 
             <form method="POST" action="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>?section=news">
+                
+                <!-- 🛡️ CHAMP CSRF CACHÉ (secret généré par le serveur) -->
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                
                 <?php if ($edit_article): ?>
                     <input type="hidden" name="id_new" value="<?= (int)$edit_article['id_new'] ?>">
                 <?php endif; ?>
@@ -406,174 +427,109 @@ $available_medias = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
         }
     </script>
     
-    <style>
-        .media-selector-container {
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
+    <script>
+        function openMediaManager() {
+            window.mediaManager = window.open(
+                '/es_moulon/BO/_backoffice/_sections/medias.php?popup=1&context=news',
+                'mediaManager',
+                'width=1000,height=700,scrollbars=yes,resizable=yes'
+            );
+
+            if (!window.mediaManager) {
+                alert("⚠️ Impossible d’ouvrir la médiathèque. Vérifie ton bloqueur de pop-ups.");
+            }
         }
 
-        .media-selector-header {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
+    </script>
 
-        .media-search-input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-        }
+    <script>
+        // Réception du message envoyé depuis la médiathèque
+        window.addEventListener('message', function(event) {
+            if (event.data.action === 'mediaAdded') {
+                const { mediaId, fileName, filePath } = event.data;
 
-        .media-search-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
+                // ✅ Ferme proprement la popup si elle existe encore
+                if (window.mediaManager && !window.mediaManager.closed) {
+                    try {
+                        window.mediaManager.close();
+                    } catch (e) {
+                        console.warn("Impossible de fermer la popup :", e);
+                    }
+                }
 
-        .media-count {
-            font-size: 14px;
-            color: #6b7280;
-            font-weight: 600;
-        }
+                // ✅ Champ caché id_media (créé s’il n’existe pas)
+                let input = document.querySelector('input[name="id_media"]');
+                if (!input) {
+                    input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'id_media';
+                    document.querySelector('form').appendChild(input);
+                }
+                input.value = mediaId;
 
-        .open-media-manager {
-            padding: 10px 20px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
+                // ✅ Afficher un aperçu visuel sans recharger
+                const grid = document.getElementById('mediaSelectorGrid');
+                grid.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:15px;background:#ecfdf5;border:2px solid #10b981;border-radius:12px;padding:12px;">
+                        <img src="${filePath}" alt="${fileName}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;">
+                        <div>
+                            <p style="font-weight:600;color:#065f46;margin-bottom:4px;">✅ Image sélectionnée</p>
+                            <p style="font-size:0.9em;color:#047857;">${fileName}</p>
+                        </div>
+                    </div>
+                `;
 
-        .open-media-manager:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-        }
+                // ✅ Mets à jour le compteur
+                const countEl = document.getElementById('selectionCount');
+                if (countEl) countEl.textContent = '1';
 
-        .media-selector-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            max-height: 450px;
-            overflow-y: auto;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-        }
+                // 💡 Petit effet visuel de confirmation (optionnel)
+                const toast = document.createElement('div');
+                toast.textContent = "✅ Image ajoutée avec succès";
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: #10b981;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+                    z-index: 9999;
+                    transition: opacity 0.5s ease;
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => (toast.style.opacity = '0'), 2000);
+                setTimeout(() => toast.remove(), 2500);
+            }
+        });
 
-        .media-selector-item {
-            position: relative;
-            cursor: pointer;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 3px solid #e5e7eb;
-            transition: all 0.3s ease;
-            background: white;
-        }
+    </script>
 
-        .media-selector-item:hover {
-            border-color: #3b82f6;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-        }
+    <script>
+       function clearSelection() {
+            // Vide la zone d’aperçu
+            const grid = document.getElementById('mediaSelectorGrid');
+            grid.innerHTML = `
+                <div class="no-results" style="grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;">
+                    Aucune image sélectionnée.<br>
+                    Cliquez sur "➕ Ajouter des images" pour en choisir depuis votre médiathèque.
+                </div>
+            `;
 
-        .media-selector-item.selected {
-            border-color: #10b981;
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
-        }
+            // Remet le compteur à zéro
+            document.getElementById('selectionCount').textContent = '0';
 
-        .media-selector-item img {
-            width: 100%;
-            height: 110px;
-            object-fit: cover;
-            display: block;
-        }
+            // Supprime la valeur du champ caché id_media
+            const input = document.querySelector('input[name="id_media"]');
+            if (input) input.value = '';
 
-        .media-selector-label {
-            padding: 8px 6px;
-            font-size: 11px;
-            font-weight: 600;
-            text-align: center;
-            background: white;
-            color: #374151;
-            border-top: 1px solid #e5e7eb;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
+            // Optionnel : affiche une alerte douce
+            alert('🗑️ Sélection vidée.');
         }
-
-        .media-selector-item input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .selected-badge {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            background: #10b981;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 700;
-            display: none;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-        }
-
-        .media-selector-item.selected .selected-badge {
-            display: block;
-            animation: popIn 0.3s ease;
-        }
-
-        .remove-from-selection {
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 10;
-        }
-
-        .media-selector-item:hover .remove-from-selection {
-            opacity: 1;
-        }
-
-        .remove-from-selection:hover {
-            background: #dc2626;
-            transform: scale(1.1);
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #9ca3af;
-            font-size: 14px;
-        }
-    </style>
+        
+    </script>
+   
 </body>
 </html>

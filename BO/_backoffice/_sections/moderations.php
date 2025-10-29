@@ -376,7 +376,7 @@ $stats = [
             <div>
                 <h1>🛡️ Gestion des Utilisateurs</h1>
                 <p style="color: #6b7280; margin-top: 4px;">
-                    <a href="dashboard.php" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
                 </p>
             </div>
             <?php if (!$edit_user): ?>

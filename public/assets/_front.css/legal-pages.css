@@ -1,0 +1,216 @@
+/* ========================================
+   PAGES LÉGALES - STYLES
+   (mentions.php, confidentialite.php, droits.php)
+   ======================================== */
+
+/* En-tête des pages légales */
+.page-header {
+  background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+  padding: 4rem 0 3rem;
+  color: white;
+  margin-bottom: 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-header .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.page-header .subtitle {
+  font-size: 1.1rem;
+  opacity: 0.95;
+  margin: 0;
+  font-weight: 300;
+}
+
+/* Conteneur principal du contenu */
+.page-content {
+  background: #f8f9fa;
+  min-height: 60vh;
+}
+
+.content-section {
+  padding: 3rem 0;
+}
+
+.content-section .container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Conteneur du contenu légal */
+.legal-content {
+  background: white;
+  padding: 3rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  line-height: 1.8;
+}
+
+/* Sections */
+.legal-content section {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.legal-content section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Titres */
+.legal-content h2 {
+  color: #1a472a;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px solid #4CAF50;
+  display: inline-block;
+}
+
+.legal-content h3 {
+  color: #2d5a3d;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem 0;
+}
+
+/* Paragraphes */
+.legal-content p {
+  margin: 1rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.legal-content p strong {
+  color: #1a472a;
+  font-weight: 600;
+}
+
+/* Listes */
+.legal-content ul,
+.legal-content ol {
+  margin: 1rem 0 1rem 2rem;
+  padding-left: 0;
+}
+
+.legal-content li {
+  margin: 0.5rem 0;
+  color: #444;
+  line-height: 1.7;
+}
+
+.legal-content ul li {
+  list-style-type: disc;
+}
+
+.legal-content ul li ul li {
+  list-style-type: circle;
+  margin-left: 1.5rem;
+}
+
+/* Liens */
+.legal-content a {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.legal-content a:hover {
+  color: #2d5a3d;
+  text-decoration: underline;
+}
+
+/* Emphases */
+.legal-content em {
+  font-style: italic;
+  color: #555;
+}
+
+/* Codes et exemples techniques */
+.legal-content code {
+  background: #f5f5f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #d32f2f;
+}
+
+/* Notes et avertissements */
+.legal-content p[style*="text-align: center"] {
+  background: #f0f7ff;
+  padding: 1rem;
+  border-left: 4px solid #2196F3;
+  margin: 2rem 0;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 2.5rem 0 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .page-header .subtitle {
+    font-size: 1rem;
+  }
+
+  .legal-content {
+    padding: 1.5rem;
+    border-radius: 0;
+  }
+
+  .legal-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .legal-content h3 {
+    font-size: 1.2rem;
+  }
+
+  .content-section {
+    padding: 1.5rem 0;
+  }
+
+  .content-section .container {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .legal-content {
+    padding: 1rem;
+  }
+
+  .legal-content h2 {
+    font-size: 1.3rem;
+  }
+
+  .legal-content ul,
+  .legal-content ol {
+    margin-left: 1rem;
+  }
+}

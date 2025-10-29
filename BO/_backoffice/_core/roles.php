@@ -12,7 +12,7 @@ $roles = [
     'ROLE_EDITOR' => [
         'name' => 'Rédacteur',
         'color' => '#2563eb',
-        'permissions' => ['dashboard', 'articles', 'actualites', 'medias']
+        'permissions' => ['dashboard', 'articles', 'equipes', 'joueurs', 'medias', 'actualites','moderations', 'parametres']
     ],
     'ROLE_SPORT_MANAGER' => [
         'name' => 'Responsable Sportif',
@@ -22,7 +22,7 @@ $roles = [
     'ROLE_MODERATOR' => [
         'name' => 'Modérateur',
         'color' => '#9333ea',
-        'permissions' => ['dashboard', 'moderations', 'articles']
+        'permissions' => ['dashboard', 'moderations', 'articles',]
     ],
     'ROLE_LICENSED' => [
         'name' => 'Licencié',

@@ -20,6 +20,11 @@ if (!in_array($_SESSION['role'], $allowed_roles)) {
 
 $user_role = $_SESSION['role'];
 
+// 🛡️ GÉNÉRATION TOKEN CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // --- SUPPRESSION ---
 if (isset($_GET['delete']) && is_numeric($_GET['delete']) && $user_role === 'ROLE_ADMIN') {
     $id = (int)$_GET['delete'];
@@ -67,6 +72,14 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete']) && $user_role === 'ROL
 
 // --- AJOUT / MODIFICATION ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_team'])) {
+    
+    // 🛡️ VÉRIFICATION TOKEN CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['flash']['danger'] = "❌ Token CSRF invalide. Tentative d'attaque détectée !";
+        header("Location: {$adminUrl}?section=equipes");
+        exit;
+    }
+    
     $id = isset($_POST['id_team']) ? (int)$_POST['id_team'] : 0;
     $name = trim($_POST['team_name']);
     $id_category = (int)$_POST['id_category'];
@@ -211,82 +224,14 @@ if ($medias_query) {
 $stats_club = $conn->query("SELECT COUNT(*) as total FROM teams WHERE id_club_team = 1")->fetch_assoc()['total'];
 $stats_opponents = $conn->query("SELECT COUNT(*) as total FROM teams WHERE id_club_team = 0")->fetch_assoc()['total'];
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Équipes - ES Moulon</title>
-    <link rel="stylesheet" href="<?= asset('_back.css/news.css') ?>">
+    
 
-    <style>
-        .filter-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        .filter-tab {
-            padding: 12px 24px;
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1em;
-            color: #6b7280;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        .filter-tab:hover {
-            color: #1e40af;
-        }
-        .filter-tab.active {
-            color: #1e40af;
-            border-bottom-color: #1e40af;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 24px;
-        }
-        .team-card {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .team-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .team-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        .badge-club {
-            background: #dcfce7;
-            color: #15803d;
-        }
-        .badge-opponent {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-    </style>
-
-</head>
-<body>
     <div class="container">
         <div class="header">
             <div>
                 <h1>👥 Gestion des Équipes</h1>
-                <p style="color:#6b7280;margin-top:4px;">
-                    <a href="<?= $adminUrl ?>?section=dashboard" style="color:#1e40af;text-decoration:none;">← Retour au tableau de bord</a>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
                 </p>
             </div>
             <button class="btn btn-primary" onclick="toggleForm()">➕ Nouvelle équipe</button>
@@ -315,6 +260,10 @@ $stats_opponents = $conn->query("SELECT COUNT(*) as total FROM teams WHERE id_cl
             
             <form method="POST" action="">
                 <input type="hidden" name="save_team" value="1">
+                
+                <!-- 🛡️ CHAMP CSRF CACHÉ -->
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                
                 <?php if ($edit_team): ?>
                     <input type="hidden" name="id_team" value="<?= $edit_team['id_team'] ?>">
                 <?php endif; ?>

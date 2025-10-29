@@ -8,6 +8,11 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['ROLE_ADMIN', 
     exit;
 }
 
+// 🛡️ GÉNÉRATION TOKEN CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Récupérer les saisons
 $seasons_query = $conn->query("SELECT id_season, name FROM seasons ORDER BY is_active DESC, start_date DESC");
 $seasons = $seasons_query->fetch_all(MYSQLI_ASSOC);
@@ -18,6 +23,14 @@ $logos = $logos_query->fetch_all(MYSQLI_ASSOC);
 
 // Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // 🛡️ VÉRIFICATION TOKEN CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        $_SESSION['flash']['danger'] = "❌ Token CSRF invalide. Tentative d'attaque détectée !";
+        header('Location: ../admin.php?section=ajouter_match');
+        exit;
+    }
+    
     $match_date = $_POST['match_date'] ?? '';
     $match_time = $_POST['match_time'] ?? '';
     $home_team_name = trim($_POST['home_team_name'] ?? '');
@@ -50,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function getOrCreateTeam($conn, $teamName, $logoId, $level)
         {
             // Chercher si l'équipe existe déjà
+            $id = null; // Initialiser la variable
             $stmt = $conn->prepare("SELECT id_team FROM teams WHERE name = ?");
             $stmt->bind_param('s', $teamName);
             $stmt->execute();
@@ -89,14 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="fr">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter un match - ES Moulon</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -317,16 +324,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     </style>
-</head>
 
-<body>
     <div class="container">
         <div class="header">
-            <a href="/es_moulon/BO/admin.php?section=calendrier" class="back-link">
-                ← Retour au calendrier
-            </a>
-            <h1>➕ Ajouter un match</h1>
-            <p style="opacity:0.9;">Saisissez les informations du match</p>
+            <div>
+                <h1>➕ Ajouter un match</h1>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=calendrier" style="color: #1e40af; text-decoration: none;">← Retour au calendrier</a>
+                </p>
+            </div>
         </div>
 
         <?php if (isset($_SESSION['flash']['success'])): ?>
@@ -349,6 +355,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="card">
             <form method="POST" id="matchForm">
+                
+                <!-- 🛡️ CHAMP CSRF CACHÉ -->
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                
                 <div class="form-grid">
                     <!-- Date et heure -->
                     <div class="form-group">
@@ -628,6 +638,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         });
     </script>
+    
 </body>
-
 </html>

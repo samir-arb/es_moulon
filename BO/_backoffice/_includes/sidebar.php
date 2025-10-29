@@ -1,4 +1,3 @@
-
 <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
         <div>
@@ -12,6 +11,12 @@
     <nav class="nav-menu">
         <ul class="nav-list">
             <?php foreach ($menu_items as $item): ?>
+                <?php 
+                // ✅ Ignorer les items cachés
+                if (isset($item['hidden']) && $item['hidden'] === true) {
+                    continue;
+                }
+                ?>
                 <?php if (in_array('*', $item['roles']) || in_array($user_role, $item['roles'])): ?>
                     <li class="nav-item">
                         <a href="?section=<?= $item['id']; ?>" 
@@ -50,4 +55,3 @@
         </h1>
     </header>
     <div class="content-area">
-

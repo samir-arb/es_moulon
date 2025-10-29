@@ -1,20 +1,43 @@
 <?php
+// --- Sécurité & Configuration ---
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../../includes/tracker.php';
 require_once __DIR__ . '/../../includes/config.php';
+
+// 🛡️ GÉNÉRATION TOKEN CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 ?>
-<!DOCTYPE html>
-<html lang="fr">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Devenir Arbitre - ES Moulon</title>
-  <link rel="stylesheet" href="<?= asset('_front.css/formulaires.css') ?>">
-</head>
+ <!--  Message de confirmation (si redirection après envoi) -->
+  <?php if (isset($_SESSION['flash']['success'])): ?>
+    <div id="confirmation" style="
+        background:#d1fae5;
+        color:#065f46;
+        border:1px solid #6ee7b7;
+        padding:15px;
+        border-radius:8px;
+        margin:20px auto;
+        max-width:800px;
+        text-align:center;
+        font-weight:500;
+    ">
+      <?= $_SESSION['flash']['success'] ?>
+    </div>
+    <script>
+      setTimeout(() => {
+        const msg = document.getElementById('confirmation');
+        if (msg) msg.style.opacity = '0';
+        setTimeout(() => msg?.remove(), 600);
+      }, 4000);
+    </script>
+    <?php unset($_SESSION['flash']['success']); ?>
+  <?php endif; ?>
 
-<body>
-
-  
 
   <section class="hero">
     <div class="contain text-center" style="padding:80px 20px;">
@@ -39,14 +62,13 @@ require_once __DIR__ . '/../../includes/config.php';
   <section class="form-section contain">
     <h2 class="section-title">Remplis le formulaire pour rejoindre notre équipe d’arbitres</h2>
 
-    <form method="POST" action="/es_moulon/pages/traitement_formulaire.php" class="contact-form">
+    <form method="POST" action="/es_moulon/public/traitement_contact.php" class="contact-form">
       <input type="hidden" name="type_form" value="arbitre">
-      <?php
-      if (empty($_SESSION['csrf'])) {
-        $_SESSION['csrf'] = bin2hex(random_bytes(32));
-      }
-      ?>
-      <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?>">
+      
+      <!-- 🛡️ CHAMP CSRF CACHÉ -->
+      <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+      
+      <!-- Honeypot anti-bot -->
       <input type="text" name="website" style="display:none">
 
       <div class="form-grid">

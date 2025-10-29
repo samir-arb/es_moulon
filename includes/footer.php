@@ -59,7 +59,7 @@
       <nav class="footer-col" aria-labelledby="ft-equipes">
         <h3 class="footer-title green" id="ft-equipes">NOS ÉQUIPES</h3>
         <ul class="footer-links">
-          <li><a href="<?= url('Regional1') ?>">Régionale 1</a></li>
+          <li><a href="<?= url('Regional1/effectif_et_staff') ?>">Régionale 1</a></li>
           <li><a href="<?= url('Nos_equipes/seniors') ?>">Séniors</a></li>
           <li><a href="<?= url('Nos_equipes/pole_formation') ?>">Pôle formation</a></li>
           <li><a href="<?= url('Nos_equipes/pole_pre_formation') ?>">Pôle pré-formation</a></li>
@@ -69,14 +69,45 @@
     </div>
 
     <div class="footer-bottom">
-      <p>
-        ©2025 / ES Moulon —
-        <a href="<?= url('droits') ?>">Tous droits réservés</a> |
-        <a href="<?= url('mentions') ?>">Mentions légales</a> |
-        <a href="<?= url('confidentialite') ?>">Politique de confidentialité</a> |
-        Design by sams
-      </p>
+      <p>© <?= date("Y") ?> ES Moulon - Tous droits réservés</p>
+      <div class="footer-legal-links">
+        <a href="<?= url('mentions') ?>">Mentions légales</a>
+        <span>|</span>
+        <a href="<?= url('confidentialite') ?>">Politique de confidentialité</a>
+        <span>|</span>
+        <a href="#" onclick="reopenCookieBanner(); return false;">🍪 Gérer les cookies</a>
+      </div>
     </div>
   </footer>
+
+  <!-- 🍪 Bannière de Consentement RGPD -->
+  <div id="cookie-consent-overlay"></div>
+  <div id="cookie-consent">
+    <div class="cookie-content">
+      <div class="cookie-text">
+        <h3>🍪 Respect de votre vie privée</h3>
+        <p>
+          Nous utilisons des cookies pour analyser le trafic de notre site et améliorer votre expérience. 
+          En acceptant, vous autorisez la collecte de données anonymisées (pages visitées, statistiques). 
+          <a href="<?= url('confidentialite') ?>" class="cookie-link">En savoir plus</a>
+        </p>
+      </div>
+      <div class="cookie-buttons">
+        <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()">
+          ✅ Accepter
+        </button>
+        <button class="cookie-btn cookie-btn-refuse" onclick="refuseCookies()">
+          ❌ Refuser
+        </button>
+        <button class="cookie-btn cookie-btn-settings" onclick="openCookieSettings()">
+          ⚙️ Personnaliser
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script de gestion du consentement -->
+  <script src="<?= asset('js/cookie-consent.js') ?>"></script>
+
 </body>
 </html>

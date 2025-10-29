@@ -1732,7 +1732,7 @@ section, header, footer {
     display: flex;
     gap: 50px;
     width: max-content;
-    animation: partnerScroll 30s linear infinite;
+    animation: partnerScroll 12s linear infinite;
 }
 
 /* Animation du défilement */
@@ -1985,18 +1985,39 @@ a.partner:hover img {
 }
 .footer-bottom {
     margin-top: 30px;
-    font-size: 15px;
-    letter-spacing: .15em;
-    opacity: .8
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: .05em;
+    opacity: .9;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+.footer-bottom p {
+    margin: 0;
+    font-weight: 500;
+}
+.footer-legal-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.footer-legal-links span {
+    opacity: 0.5;
 }
 .footer-bottom a {
     color: #fff;
     text-decoration: none;
     border-bottom: 1px solid transparent;
-    transition: border-color .2s, color .2s
+    transition: border-color .2s, color .2s;
+    font-size: 13px;
 }
 .footer-bottom a:hover {
     color: var(--green-fluo);
+    border-bottom-color: var(--green-fluo);
 }
 /* Focus accessibilité */
 .footer a:focus-visible {

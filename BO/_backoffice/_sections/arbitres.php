@@ -150,13 +150,8 @@ $sql = "
 $res = $conn->query($sql);
 $arbitres = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 ?>
-<!DOCTYPE html>
-<html lang="fr">
 
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="utf-8">
-    <title>Gestion Arbitres - ES Moulon</title>
+
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -519,15 +514,15 @@ $arbitres = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
             }
         }
     </style>
-</head>
 
-<body>
     <div class="container">
         <!-- HEADER -->
         <div class="header">
             <div>
                 <h1>🎯 Gestion des Arbitres</h1>
-                <p><a href="/es_moulon/BO/admin.php?section=dashboard">← Retour au dashboard</a></p>
+                <p style="color: #6b7280; margin-top: 4px;">
+                    <a href="admin.php?section=dashboard" style="color: #1e40af; text-decoration: none;">← Retour au dashboard</a>
+                </p>
             </div>
             <?php if (!$edit): ?>
                 <button class="btn btn-primary" onclick="document.getElementById('formSection').style.display='block'; window.scrollTo(0,0);">

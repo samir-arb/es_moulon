@@ -32,15 +32,6 @@ foreach ($matchs as $m) {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendrier ES Moulon - Équipe Senior R1</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         .calendar-page {
@@ -500,9 +491,6 @@ foreach ($matchs as $m) {
         }
     </style>
 
-</head>
-
-<body>
     <!-- HERO -->
     <section class="hero-pro">
         <img src="<?= asset('uploads/loups-moulon.png') ?>" alt="Bannière ES Moulon" class="hero-bg">
@@ -699,7 +687,3 @@ foreach ($matchs as $m) {
             }
         }
     </script>
-
-</body>
-
-</html>

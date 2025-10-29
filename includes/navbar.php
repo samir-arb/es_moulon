@@ -108,7 +108,7 @@
                 <img class="bullet" src="<?= asset('picto/icons8-football-2-32.png') ?>" alt=""> Devenir partenaire
               </a></li>
             <li><a href="<?= url('Rejoignez_nous/nous_contactez') ?>">
-                <img class="bullet" src="<?= asset('picto/icons8-football-2-32.png') ?>" alt=""> Nous contactez
+                <img class="bullet" src="<?= asset('picto/icons8-football-2-32.png') ?>" alt=""> Nous contacter
               </a></li>
           </ul>
         </li>

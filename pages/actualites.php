@@ -122,18 +122,6 @@ $mois_fr = [
 ];
 ?>
 
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($title) ?></title>
-    <link rel="stylesheet" href="<?= asset('_front.css/actualites.css') ?>">
-   
-</head>
-
-<body>
 
     <!-- HEADER -->
     <div class="page-header">
@@ -199,12 +187,12 @@ $mois_fr = [
                                     <p class="news-excerpt">
                                         <?= nl2br(htmlspecialchars(substr($news['content'], 0, 180))) ?>...
                                     </p>
-
-                                    <div class="news-meta">
+                                    
+                                    <!--<div class="news-meta">
                                         <span class="news-author">
                                             Par <?= htmlspecialchars($news['first_name'] . ' ' . $news['author_name']) ?>
                                         </span>
-                                    </div>
+                                    </div>-->
 
                                     <a href="<?= url('actualite?id=' . $news['id_new']) ?>" class="btn-read-more">
                                         Lire la suite →

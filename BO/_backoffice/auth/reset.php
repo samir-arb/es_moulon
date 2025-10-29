@@ -1,6 +1,6 @@
 <?php
 session_start();
-require '../../includes/config.php';
+require __DIR__ . '/../../../includes/config.php';
 
 $token = $_GET['token'] ?? '';
 
@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pwd   = $_POST['password'] ?? '';
 
     if ($token && $pwd) {
-        $sql = "SELECT id_user FROM users WHERE token_reset = ? AND token_reset_expires_at > NOW()";
+        $sql = "SELECT id_user FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $token);
         $stmt->execute();
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($pwd, PASSWORD_BCRYPT);
 
             $sql = "UPDATE users 
-                    SET password = ?, token_reset = NULL, token_reset_expires_at = NULL 
+                    SET password = ?, reset_token = NULL, reset_token_expiry = NULL 
                     WHERE id_user = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("si", $hash, $user['id_user']);
@@ -38,29 +38,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <link rel="stylesheet" href="<?= asset('_back.css/login.css') ?>">
+    <link rel="stylesheet" href="<?= asset('_back.css/dashboard.css') ?>">
     <meta charset="UTF-8">
     <title>Réinitialiser le mot de passe</title>
-    <style><?php include '../public/assets/css/login.css'; ?></style>
 </head>
 <body>
-    <div class="login-box">
-        <h1>Réinitialisation du mot de passe</h1>
+    <div class="auth-box">
+        <h1>ES Moulon</h1>
+        <h2>Nouveau mot de passe</h2>
 
-        <?php if (isset($_SESSION['flash'])) { 
-            foreach ($_SESSION['flash'] as $t => $m) echo "<div class='alert alert-$t'>$m</div>"; 
-            unset($_SESSION['flash']); 
-        } ?>
+        <?php if (!empty($_SESSION['flash'])): ?>
+            <?php foreach ($_SESSION['flash'] as $type => $msg): ?>
+                <div class="alert alert-<?= $type ?>"><?= $msg ?></div>
+            <?php endforeach; unset($_SESSION['flash']); ?>
+        <?php endif; ?>
 
         <form method="post">
             <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
             
             <div class="form-group">
-                <label>Nouveau mot de passe :</label>
-                <input type="password" name="password" required>
+                <label for="password">Nouveau mot de passe</label>
+                <input type="password" id="password" name="password" required minlength="6">
             </div>
 
             <button type="submit">Réinitialiser</button>
         </form>
+
+        <a href="login.php" class="link">← Retour connexion</a>
     </div>
 </body>
 </html>
